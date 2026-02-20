@@ -1,0 +1,21 @@
+# Secrets — never commit these
+.env
+*.env
+*-sa.json
+*serviceaccount*.json
+product-ops-agent-*.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Generated data (regenerated each run)
+public/data/linear_data.json
+public/data/sheets_data.json
+
+# OS
+.DS_Store
+Thumbs.db

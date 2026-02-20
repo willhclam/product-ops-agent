@@ -1,0 +1,50 @@
+name: Daily Product Ops Report
+
+on:
+  schedule:
+    # Runs at 08:00 UTC every day (adjust to your timezone)
+    - cron: '0 8 * * *'
+  workflow_dispatch:  # Allow manual trigger from GitHub UI
+
+permissions:
+  contents: write  # Needed to push to gh-pages branch
+
+jobs:
+  generate-report:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install cryptography
+
+      - name: Copy service account key
+        # The SA JSON is stored as a GitHub Secret (base64-encoded)
+        run: |
+          echo "${{ secrets.GOOGLE_SA_JSON_B64 }}" | base64 -d > product-ops-agent-sa.json
+        continue-on-error: true  # Don't fail if secret not set
+
+      - name: Generate report
+        env:
+          LINEAR_API_KEY:  ${{ secrets.LINEAR_API_KEY }}
+          GOOGLE_API_KEY:  ${{ secrets.GOOGLE_API_KEY }}
+          GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
+          GOOGLE_SA_JSON:  product-ops-agent-sa.json
+        run: python scripts/run_all.py
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
+          publish_branch: gh-pages
+          force_orphan: false
+          keep_files: true
+          commit_message: "chore: update daily ops report [skip ci]"
