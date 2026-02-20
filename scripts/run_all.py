@@ -40,9 +40,9 @@ def main():
         print("ERROR: Report generation failed", file=sys.stderr)
         sys.exit(1)
 
-    print(f"\n✓ Report generated successfully")
-    print(f"  Linear fetch: {'OK' if rc1==0 else 'WARN (check logs)'}")
-    print(f"  Sheets fetch: {'OK' if rc2==0 else 'WARN (sheet may need access)'}")
+    print("\nReport generated successfully")
+    print("  Linear fetch: " + ("OK" if rc1 == 0 else "WARN (check logs)"))
+    print("  Sheets fetch: " + ("OK" if rc2 == 0 else "WARN (sheet needs access - see README)"))
 
 
 if __name__ == "__main__":
