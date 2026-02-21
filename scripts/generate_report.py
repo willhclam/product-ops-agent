@@ -179,7 +179,11 @@ def generate_html(linear: dict, sheets: dict) -> str:
         return json.dumps(obj, ensure_ascii=False)
 
     # Build burndown data across all pods (combined)
+    # Also add a combined "Ideal" line based on total initial scope
     burndown_datasets = []
+    combined_ideal = []
+    burndown_labels = []
+
     for s in current_stats:
         bd = s.get("burndown", [])
         if bd:
@@ -190,11 +194,31 @@ def generate_html(linear: dict, sheets: dict) -> str:
                 "backgroundColor": s["color"] + "22",
                 "tension": 0.3,
                 "fill": False,
+                "borderWidth": 2,
             })
+            if not burndown_labels:
+                burndown_labels = [d["day"] for d in bd]
 
-    burndown_labels = []
-    if current_stats and current_stats[0].get("burndown"):
-        burndown_labels = [d["day"] for d in current_stats[0]["burndown"]]
+    # Compute combined ideal across all pods
+    if burndown_labels and current_stats:
+        n_days = len(burndown_labels)
+        total_initial = sum(
+            s["total_pts"] for s in current_stats if s.get("burndown")
+        )
+        for i in range(n_days):
+            combined_ideal.append(round(max(0, total_initial - total_initial * i / max(n_days - 1, 1)), 1))
+
+    if combined_ideal:
+        burndown_datasets.insert(0, {
+            "label": "Ideal",
+            "data": combined_ideal,
+            "borderColor": "#475569",
+            "borderDash": [6, 4],
+            "borderWidth": 2,
+            "pointRadius": 0,
+            "tension": 0,
+            "fill": False,
+        })
 
     # Per-pod engineer points (next sprint)
     next_eng_data = {}

@@ -146,7 +146,11 @@ def fetch_team_backlog(team_id: str) -> list:
 
 
 def calculate_burndown(cycle: dict) -> list:
-    """Generate burndown data from scope/completed history."""
+    """Generate burndown data from scope/completed history.
+
+    The ideal line is projected over the full sprint duration (start → end),
+    not just the data points recorded so far.
+    """
     scope_hist = cycle.get("scopeHistory", []) or []
     done_hist  = cycle.get("completedScopeHistory", []) or []
 
@@ -154,16 +158,20 @@ def calculate_burndown(cycle: dict) -> list:
         return []
 
     sprint_start = datetime.fromisoformat(cycle["startsAt"].replace("Z", "+00:00"))
-    n = len(scope_hist)
+    sprint_end   = datetime.fromisoformat(cycle["endsAt"].replace("Z", "+00:00"))
+    sprint_days  = max((sprint_end - sprint_start).days, 1)
+
+    initial_scope = scope_hist[0]
     burndown = []
 
     for i, (scope, done) in enumerate(zip(scope_hist, done_hist)):
         day = sprint_start + timedelta(days=i)
         remaining = scope - done
+        ideal = max(0.0, initial_scope - (initial_scope / sprint_days) * i)
         burndown.append({
             "day": day.strftime("%b %d"),
             "remaining": max(0, remaining),
-            "ideal": max(0, scope_hist[0] - (scope_hist[0] / max(n - 1, 1)) * i),
+            "ideal": round(ideal, 1),
         })
     return burndown
 
