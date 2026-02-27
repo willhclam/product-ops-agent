@@ -1,0 +1,1728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Product Ops Report — Feb 11 – Feb 24, 2026</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --surface2: #273449;
+      --border: #334155;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #6366f1;
+      --green: #10b981;
+      --yellow: #f59e0b;
+      --red: #ef4444;
+      --blue: #3b82f6;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 0 0 60px 0;
+    }
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
+    }
+    header h1 { font-size: 1.25rem; font-weight: 700; color: var(--text); }
+    header .meta { font-size: 0.8rem; color: var(--muted); text-align: right; }
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      background: var(--accent);
+      color: #fff;
+      margin-left: 8px;
+    }
+    .container { max-width: 1400px; margin: 0 auto; padding: 28px 24px; }
+    .section-header {
+      font-size: 1.4rem; font-weight: 700;
+      border-left: 4px solid var(--accent);
+      padding-left: 14px;
+      margin: 36px 0 20px 0;
+    }
+    .section-header small { font-size: 0.85rem; color: var(--muted); font-weight: 400; margin-left: 10px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+    .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .card-title {
+      font-size: 0.8rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.06em; color: var(--muted); margin-bottom: 10px;
+    }
+    .card-value { font-size: 2rem; font-weight: 800; color: var(--text); }
+    .card-sub { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
+    .progress-bar {
+      height: 8px; background: var(--border); border-radius: 4px;
+      margin-top: 10px; overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%; border-radius: 4px;
+      background: linear-gradient(90deg, var(--accent), var(--blue));
+      transition: width 0.6s ease;
+    }
+    .chart-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 22px;
+    }
+    .chart-card h3 {
+      font-size: 1rem; font-weight: 600; margin-bottom: 16px; color: var(--text);
+    }
+    .chart-wrap { position: relative; height: 280px; }
+    .chart-wrap-tall { position: relative; height: 360px; }
+    .pod-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 18px;
+    }
+    .pod-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .pod-header {
+      padding: 14px 18px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+    .pod-name {
+      font-weight: 700; font-size: 1rem;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .pod-dot {
+      width: 12px; height: 12px; border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .pod-pct { font-size: 1.4rem; font-weight: 800; }
+    .pod-body { padding: 16px 18px; }
+    .stat-row {
+      display: flex; justify-content: space-between;
+      font-size: 0.82rem; color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .stat-row strong { color: var(--text); font-weight: 600; }
+    .mini-progress { height: 5px; background: var(--border); border-radius: 3px; margin: 6px 0 12px; overflow: hidden; }
+    .mini-fill { height: 100%; border-radius: 3px; }
+    table {
+      width: 100%; border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+    th {
+      text-align: left; padding: 8px 10px;
+      background: var(--surface2);
+      color: var(--muted);
+      font-weight: 600; font-size: 0.75rem;
+      text-transform: uppercase; letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      vertical-align: top;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--surface2); }
+    .tag {
+      display: inline-block;
+      padding: 2px 8px; border-radius: 6px;
+      font-size: 0.72rem; font-weight: 600;
+    }
+    .tag-red    { background: #991b1b33; color: #fca5a5; }
+    .tag-yellow { background: #78350f33; color: #fcd34d; }
+    .tag-green  { background: #14532d33; color: #6ee7b7; }
+    .tag-blue   { background: #1e3a5f33; color: #93c5fd; }
+    .tag-gray   { background: #33415533; color: var(--muted); }
+    .tag-purple { background: #3730a333; color: #a5b4fc; }
+    .alert-block {
+      background: #991b1b22;
+      border: 1px solid #991b1b66;
+      border-radius: 8px; padding: 12px 16px;
+      margin-top: 12px;
+    }
+    .alert-block h4 { font-size: 0.85rem; color: #fca5a5; margin-bottom: 8px; }
+    .alert-item {
+      font-size: 0.8rem; color: var(--muted);
+      padding: 4px 0;
+      border-bottom: 1px solid #ffffff10;
+    }
+    .alert-item:last-child { border-bottom: none; }
+    .alert-item strong { color: var(--text); }
+    .warn-block {
+      background: #78350f22;
+      border: 1px solid #78350f66;
+      border-radius: 8px; padding: 12px 16px;
+      margin-top: 12px;
+    }
+    .warn-block h4 { font-size: 0.85rem; color: #fcd34d; margin-bottom: 8px; }
+    .sheets-notice {
+      background: #78350f22; border: 1px solid #78350f66;
+      border-radius: 10px; padding: 16px 20px; margin: 16px 0;
+      font-size: 0.85rem; color: #fcd34d;
+    }
+    .sheets-notice code {
+      background: #ffffff15; padding: 2px 6px; border-radius: 4px;
+      font-family: monospace; font-size: 0.8rem;
+    }
+    .initiative-stage {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 14px;
+      overflow: hidden;
+    }
+    .initiative-stage-header {
+      padding: 12px 16px;
+      background: var(--surface2);
+      display: flex; justify-content: space-between; align-items: center;
+      cursor: pointer; user-select: none;
+    }
+    .initiative-stage-header h4 { font-size: 0.88rem; font-weight: 600; }
+    .count-badge {
+      background: var(--accent);
+      color: #fff;
+      border-radius: 999px;
+      padding: 2px 9px;
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+    .tabs {
+      display: flex; gap: 6px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+    .tab-btn {
+      padding: 10px 20px;
+      background: none; border: none; cursor: pointer;
+      color: var(--muted); font-size: 0.88rem; font-weight: 600;
+      border-bottom: 3px solid transparent;
+      transition: all 0.15s;
+    }
+    .tab-btn.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    @media (max-width: 768px) {
+      .grid-5 { grid-template-columns: repeat(2, 1fr); }
+      header { padding: 14px 16px; flex-direction: column; gap: 8px; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>⚡ Product Ops Report
+      <span class="badge">LIVE</span>
+    </h1>
+    <div style="font-size:0.82rem;color:var(--muted);margin-top:4px;">Sprint: Feb 11 – Feb 24, 2026</div>
+  </div>
+  <div class="meta">
+    <div>Updated: Feb 27, 2026 10:32 UTC</div>
+    <div style="margin-top:3px;"><a href="#section1">Sprint Progress</a> · <a href="#section2">Sprint Planning</a></div>
+  </div>
+</header>
+
+<div class="container">
+
+<!-- ============================================================
+     SECTION 1: SPRINT PROGRESS
+     ============================================================ -->
+<div id="section1" class="section-header">
+  Section 1 — Sprint Progress
+  <small>Feb 11 – Feb 24, 2026</small>
+</div>
+
+<!-- Overall KPIs -->
+<div class="grid-5" style="margin-bottom:20px;">
+  <div class="card">
+    <div class="card-title">Tickets Done</div>
+    <div class="card-value">227<span style="font-size:1rem;color:var(--muted);">/247</span></div>
+    <div class="progress-bar"><div class="progress-fill" style="width:91.9%"></div></div>
+    <div class="card-sub">91.9% completion</div>
+  </div>
+  <div class="card">
+    <div class="card-title">Points Burned</div>
+    <div class="card-value">304<span style="font-size:1rem;color:var(--muted);">/329</span></div>
+    <div class="progress-bar"><div class="progress-fill" style="width:92.4%"></div></div>
+    <div class="card-sub">92.4% of story points</div>
+  </div>
+  <div class="card">
+    <div class="card-title">Active Pods</div>
+    <div class="card-value">5</div>
+    <div class="card-sub">Accounting · AP · Cards · Megapod · Wallet</div>
+  </div>
+  <div class="card">
+    <div class="card-title">Blocked Issues</div>
+    <div class="card-value" style="color:var(--red);">0</div>
+    <div class="card-sub">Needs immediate attention</div>
+  </div>
+  <div class="card">
+    <div class="card-title">Stale (3+ days)</div>
+    <div class="card-value" style="color:var(--yellow);">0</div>
+    <div class="card-sub">In-progress, no recent updates</div>
+  </div>
+</div>
+
+<!-- Burndown Chart -->
+<div class="chart-card" style="margin-bottom:20px;">
+  <h3>📉 Burndown — Remaining Story Points by Day</h3>
+  <div class="chart-wrap">
+    <canvas id="burndownChart"></canvas>
+  </div>
+</div>
+
+<!-- Per-Pod Progress -->
+<div class="section-header" style="font-size:1.1rem;margin-top:28px;">Per-Pod Progress</div>
+<div class="pod-grid">
+
+  <div class="pod-card">
+    <div class="pod-header">
+      <div class="pod-name">
+        <div class="pod-dot" style="background:#6366f1;"></div>
+        Megapod
+        <span style="font-size:0.75rem;color:var(--muted);font-weight:400;">MegaPod 30 - 11Feb26 - 24Feb26 (Q1)</span>
+      </div>
+      <div class="pod-pct" style="color:#6366f1;">89.4%</div>
+    </div>
+    <div class="pod-body">
+      <div class="stat-row">
+        <span>Tickets</span>
+        <strong>76/85 done &nbsp;·&nbsp; 3 in-progress</strong>
+      </div>
+      <div class="mini-progress">
+        <div class="mini-fill" style="width:89.4%;background:#6366f1;"></div>
+      </div>
+      <div class="stat-row">
+        <span>Story Points</span>
+        <strong>141/155 burned (91.0%)</strong>
+      </div>
+      <div class="mini-progress">
+        <div class="mini-fill" style="width:91.0%;background:#6366f188;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pod-card">
+    <div class="pod-header">
+      <div class="pod-name">
+        <div class="pod-dot" style="background:#f59e0b;"></div>
+        Accounting
+        <span style="font-size:0.75rem;color:var(--muted);font-weight:400;">Cycle 81</span>
+      </div>
+      <div class="pod-pct" style="color:#f59e0b;">93.3%</div>
+    </div>
+    <div class="pod-body">
+      <div class="stat-row">
+        <span>Tickets</span>
+        <strong>14/15 done &nbsp;·&nbsp; 0 in-progress</strong>
+      </div>
+      <div class="mini-progress">
+        <div class="mini-fill" style="width:93.3%;background:#f59e0b;"></div>
+      </div>
+      <div class="stat-row">
+        <span>Story Points</span>
+        <strong>13/13 burned (100.0%)</strong>
+      </div>
+      <div class="mini-progress">
+        <div class="mini-fill" style="width:100.0%;background:#f59e0b88;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pod-card">
+    <div class="pod-header">
+      <div class="pod-name">
+        <div class="pod-dot" style="background:#10b981;"></div>
+        AP
+        <span style="font-size:0.75rem;color:var(--muted);font-weight:400;">Sprint Cycle 77</span>
+      </div>
+      <div class="pod-pct" style="color:#10b981;">94.0%</div>
+    </div>
+    <div class="pod-body">
+      <div class="stat-row">
+        <span>Tickets</span>
+        <strong>47/50 done &nbsp;·&nbsp; 2 in-progress</strong>
+      </div>
+      <div class="mini-progress">
+        <div class="mini-fill" style="width:94.0%;background:#10b981;"></div>
+      </div>
+      <div class="stat-row">
+        <span>Story Points</span>
+        <strong>57/64 burned (89.1%)</strong>
+      </div>
+      <div class="mini-progress">
+        <div class="mini-fill" style="width:89.1%;background:#10b98188;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pod-card">
+    <div class="pod-header">
+      <div class="pod-name">
+        <div class="pod-dot" style="background:#3b82f6;"></div>
+        Cards
+        <span style="font-size:0.75rem;color:var(--muted);font-weight:400;">CARDS - 4 - 11Feb26 - 24Feb26</span>
+      </div>
+      <div class="pod-pct" style="color:#3b82f6;">88.1%</div>
+    </div>
+    <div class="pod-body">
+      <div class="stat-row">
+        <span>Tickets</span>
+        <strong>37/42 done &nbsp;·&nbsp; 0 in-progress</strong>
+      </div>
+      <div class="mini-progress">
+        <div class="mini-fill" style="width:88.1%;background:#3b82f6;"></div>
+      </div>
+      <div class="stat-row">
+        <span>Story Points</span>
+        <strong>44/46 burned (95.7%)</strong>
+      </div>
+      <div class="mini-progress">
+        <div class="mini-fill" style="width:95.7%;background:#3b82f688;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pod-card">
+    <div class="pod-header">
+      <div class="pod-name">
+        <div class="pod-dot" style="background:#ec4899;"></div>
+        Wallet
+        <span style="font-size:0.75rem;color:var(--muted);font-weight:400;">WAL - 4 - 11Feb26 - 24Feb26</span>
+      </div>
+      <div class="pod-pct" style="color:#ec4899;">96.4%</div>
+    </div>
+    <div class="pod-body">
+      <div class="stat-row">
+        <span>Tickets</span>
+        <strong>53/55 done &nbsp;·&nbsp; 0 in-progress</strong>
+      </div>
+      <div class="mini-progress">
+        <div class="mini-fill" style="width:96.4%;background:#ec4899;"></div>
+      </div>
+      <div class="stat-row">
+        <span>Story Points</span>
+        <strong>49/51 burned (96.1%)</strong>
+      </div>
+      <div class="mini-progress">
+        <div class="mini-fill" style="width:96.1%;background:#ec489988;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="grid-2" style="margin-top:20px;">
+  <div class="chart-card">
+    <h3>📊 Tickets: Completed vs. Total per Pod</h3>
+    <div class="chart-wrap">
+      <canvas id="podTicketsChart"></canvas>
+    </div>
+  </div>
+  <div class="chart-card">
+    <h3>🔥 Story Points: Burned vs. Total per Pod</h3>
+    <div class="chart-wrap">
+      <canvas id="podPointsChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<div id="section2" class="section-header" style="margin-top:44px;">
+  Section 2 — Sprint Planning (Upcoming Sprint)
+  <small>Feb 25 – Mar 10, 2026</small>
+</div>
+
+<div class="grid-3" style="margin-bottom:20px;">
+  <div class="card">
+    <div class="card-title">Next Sprint Tickets</div>
+    <div class="card-value">296</div>
+    <div class="card-sub">Across 5 pods</div>
+  </div>
+  <div class="card">
+    <div class="card-title">Next Sprint Story Points</div>
+    <div class="card-value">422</div>
+    <div class="card-sub">Total planned capacity</div>
+  </div>
+  <div class="card">
+    <div class="card-title">Heaviest Ticket</div>
+    <div class="card-value">8 pts</div>
+    <div class="card-sub">[AI] AI assistant integration of receipt managemen</div>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="chart-card">
+    <h3>📋 Ticket Count per Pod (Next Sprint)</h3>
+    <div class="chart-wrap"><canvas id="nextPodChart"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <h3>👤 Story Points per Engineer (Next Sprint)</h3>
+    <div class="chart-wrap-tall"><canvas id="engPointsChart"></canvas></div>
+  </div>
+</div>
+
+<div class="chart-card" style="margin-top:18px;">
+  <h3>📈 Pareto Chart — Tickets Ranked by Story Points (Top 25)</h3>
+  <div class="chart-wrap-tall"><canvas id="paretoChart"></canvas></div>
+</div>
+
+<div class="section-header" style="font-size:1.05rem;margin-top:36px;">
+  🗂️ Initiatives Not Yet Ready for Engineering
+</div>
+
+<div class="initiative-stage">
+  <div class="initiative-stage-header">
+    <h4><span class="tag tag-gray">Unknown / Not Set</span></h4>
+    <span class="count-badge">117</span>
+  </div>
+  <table>
+    <thead><tr><th>Initiative</th><th>Pillar</th><th>Owner</th><th>Target Date</th><th>Readiness</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>Still making progress in M3 2025</strong><br/><span style="font-size:0.75rem;color:var(--muted);">DECEMBER</span></td>
+        <td></td>
+        <td></td>
+        <td>DECEMBER</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Boleto Payment for Utility Bills In Brazil</strong><br/><span style="font-size:0.75rem;color:var(--muted);">AP</span></td>
+        <td>1. New local payment type offering supported: Expand coverage to include utility and government boletos (boletos de recolhimento).
+2. Unified experience: Pay all boletos — vendor invoices and utility bills — from the same Jeeves flow.
+3. Better visibility: All boleto payments consolidated in one place for tracking and reconciliation.
+4. Operational simplicity: No need to manage separate processes or vendors for recolhimento payments.</td>
+        <td>Dec 18</td>
+        <td>Pedro</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>JANUARY (2026)</strong><br/><span style="font-size:0.75rem;color:var(--muted);">JANUARY (2026)</span></td>
+        <td></td>
+        <td></td>
+        <td>JANUARY (2026)</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Bill Pay reconciliation for NetSuite and non-ERP</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Accounting</span></td>
+        <td>This will allow customers to differentiate their bill payments from their card expenses during reconciliation, and sync these transactions correctly into their ERP.</td>
+        <td></td>
+        <td>Dylan</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>USD/MXN - M1 migration</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Cards</span></td>
+        <td>Recurrent project to migrate companies from Jeeves 1.0 to Jeeves 3.0.</td>
+        <td>--</td>
+        <td>Douglas</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Cards Production Health (M1)</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Cards</span></td>
+        <td>Recurrent project to analyse and fix bugs in production.</td>
+        <td>--</td>
+        <td>Douglas</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Cards API: Onboarding (M1)</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Cards</span></td>
+        <td>Recurrent project to onboard new customers to Jeeves Cards API.</td>
+        <td>--</td>
+        <td>Douglas</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Stablecoin: Launch USD payouts to non core geos</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Payments</span></td>
+        <td>Users can send USD payout to multiple geographies across the world</td>
+        <td></td>
+        <td>Kunal</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Stablecoin: Launch USD to COP payout</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Payments</span></td>
+        <td>Enable payout for US businesses to send to COP using Cobre Routefusion</td>
+        <td></td>
+        <td>Kunal</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Stablecoin: Create RF individual accounts for Jeeves stablecoin flow of funds</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Wallet</span></td>
+        <td></td>
+        <td></td>
+        <td>Kunal</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Stablecoin: Postman APIs for balance and transfers from Bridge 1P</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Payments</span></td>
+        <td></td>
+        <td></td>
+        <td>Kunal</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Stablecoin: If 1P has insufficient balance, keep interwallet transfers as pending</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Payments</span></td>
+        <td></td>
+        <td></td>
+        <td>Kunal</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Stablecoin: Interwallet transfer (wallet to wallet, using the default AWX flow)</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Payments</span></td>
+        <td></td>
+        <td></td>
+        <td>Kunal</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Stablecoin: Bridge vs. Jeeves Reconciliation</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Wallet</span></td>
+        <td>(a) matching reports, (b) figuring out missing transactions, (c) deposit matching w/ metadata)</td>
+        <td></td>
+        <td>Kunal</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Treasury Management in CMS</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Payments</span></td>
+        <td>Internal work for Treasury management enablement
+1. Internal alert if balance is less than payment amount
+2. Show balance of every 1P account in CMS
+3. Initiate money movement between 1Ps from CMS</td>
+        <td>Jan 29</td>
+        <td>Kunal</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Stablecoin: Launch RF corridors</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Payments</span></td>
+        <td></td>
+        <td></td>
+        <td>Kunal</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>CMS: DB Stability Risk from Card Transaction Page</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Wallet</span></td>
+        <td>Internal task for controlling stability risk on CMS API calls</td>
+        <td></td>
+        <td>Pedro</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Reimbursements feature available without a funding source when mode is external</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Megapod</span></td>
+        <td></td>
+        <td></td>
+        <td>Anish</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Identify queries DMS task adding load to DB</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Wallet</span></td>
+        <td></td>
+        <td></td>
+        <td>Pedro</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Vendor Owner Assignation UX for Existing Vendors</strong><br/><span style="font-size:0.75rem;color:var(--muted);">AP</span></td>
+        <td>1. Makes vendor ownership visible and easy to manage by adding a clear column and in-profile controls.
+2. Allows bulk assignment of vendor owners, eliminating the need to update vendors one by one.
+3. Improves AP workflows by ensuring vendor owners are assigned before approval policies step up.
+4 Reduces friction by letting users invite new owners directly when assigning them.</td>
+        <td>Feb 2</td>
+        <td>Pedro</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>QiTech SF Account Rejection Webhook Support</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Wallet</span></td>
+        <td>Handle rejection webhook for QiTech (BE only)</td>
+        <td></td>
+        <td>Pedro</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Bills Inbox Expansion for ERP Bill Sync</strong><br/><span style="font-size:0.75rem;color:var(--muted);">AP</span></td>
+        <td>1. Unified bill visibility: View SAT and ERP bills together in one place for complete payables oversight.
+2. Less AP manual work: Automatically import open and partially paid bills from your ERP – no manual re-entry.
+3. Faster payments: Pay ERP or SAT bills directly through Jeeves in a few clicks.
+4. Accurate reconciliation: Payments sync back to the ERP automatically, keeping records aligned.</td>
+        <td></td>
+        <td>Pedro</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Stablecoin: Use USDB / EURC account as source of funds for Cards for US and EUR Geos</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Cards</span></td>
+        <td>Move card volume, for US businesses, to USDB (away from AWX);
+
+Move card volume, for EU businesses, to EURC (away from AWX)</td>
+        <td></td>
+        <td>Douglas</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Data quality and governance - new pipeline this and this</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Megapod</span></td>
+        <td></td>
+        <td></td>
+        <td>Hector</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Card “Timeline” audit trail for key card changes</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Megapod</span></td>
+        <td>1. Full change transparency – view a clear, chronological history of all key card actions to instantly understand how a card evolved over time.
+2. Faster issue resolution – help admins, finance, and support teams quickly answer “what changed, when, and by whom” without manual investigation.
+3. Stronger governance & accountability – create an immutable audit trail for card limits, controls, and lifecycle changes to support internal controls and compliance.
+4. Operational clarity at scale – reduce confusion and miscommunication by centralizing all card-related changes in a single, easy-to-scan timeline.</td>
+        <td>--</td>
+        <td>Anish</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Travel agent V1.1- Finish Approval Chain Component for Trip Requests</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Megapod</span></td>
+        <td>1. End-to-end transparency – Requesters and approvers can clearly see who the request is waiting on, who comes next, and what’s already approved.
+2. Reduced follow-ups and confusion – Eliminates out-of-band messages like “Who has this?” or “Am I blocking this?” by making approval status explicit in-product.
+3. Faster, more predictable approvals – Approvers understand their role in the chain and can act confidently without uncertainty about downstream steps.
+4. Enterprise-grade governance – Admins can trust that the visible approval chain accurately reflects policy configuration, improving auditability and control.</td>
+        <td></td>
+        <td>Anish</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Travel agent V1.1- Implement Trip Request Email Notifications with Key Details</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Megapod</span></td>
+        <td>1. Faster approvals – Approvers receive clear, actionable emails with all relevant trip details, reducing delays and missed requests.
+2. Less back-and-forth – Requesters are immediately notified of approvals or declines (with reasons), eliminating follow-ups outside the platform.
+3. Better decision context – Emails include policy, dates, traveler info, and budget so approvers can act confidently without logging in first.
+4. More reliable workflows – Real-time, role-specific notifications ensure the right people are notified at the right time with no duplicates or confusion.</td>
+        <td></td>
+        <td>Anish</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Travel agent V1.1- Approve or Decline Trip Requests Directly from Email</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Megapod</span></td>
+        <td>1. Faster decisions for time-sensitive travel – Approvers can act immediately from their inbox without needing to log into Jeeves.
+2. Reduced approval friction – One-click approve/decline actions eliminate unnecessary context switching and delays.
+3. Clear, auditable outcomes – All email-based actions are securely logged with approver identity and timestamps for full traceability.
+4. Seamless workflow continuity – Requests update instantly in Jeeves, notify the requester, and move to the next approver when applicable.</td>
+        <td></td>
+        <td>Anish</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Brazil SCR (Monthly Monitoring)"</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Megapod</span></td>
+        <td>No visible improvement from a customer's perspective. Though, it will help us optimize on data pull and cost efficiency</td>
+        <td></td>
+        <td>Jason</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Mobile Card Controls (View only)</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Megapod</span></td>
+        <td>1. At-a-glance awareness – employees can instantly review card status, limits, and MCC restrictions from mobile without needing web access.
+2. Transparency – finance teams and cardholders share the same real-time visibility into card details, improving alignment on spend policy.
+3. Reduced support dependency – self-service visibility minimizes “what’s my limit?” and “is my card active?” inquiries.
+4. Foundation for controls – lays the groundwork for interactive card management (freeze, limits, MCC edits) in future releases.</td>
+        <td>TBC</td>
+        <td>Jason</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>FEBURARY</strong><br/><span style="font-size:0.75rem;color:var(--muted);">FEBURARY</span></td>
+        <td></td>
+        <td></td>
+        <td>FEBURARY</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>AI Setup Automation: Phase 1: FTU & Upload Anything</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Accounting</span></td>
+        <td>This will considerably simplify the currently manual and confusing process of setting up a company's accounting information so that they can immediately begin to get value out of the Accounting features.</td>
+        <td></td>
+        <td>Dylan</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Factura & Card Transaction Matching</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Cards</span></td>
+        <td>1. Operational excellence - customers can rely on rules and AI to automatically match SAT bills to card transactions.</td>
+        <td>TBC</td>
+        <td>Douglas</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Mexico Bundle: Syntage Re-connection & Promissory Notes</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Megapod</span></td>
+        <td>Better customer experience by embedding the need to capture the appropriate consent at the time of onboarding</td>
+        <td></td>
+        <td>Jason</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Jeeves Platform Fee via Pricing Engine</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Cards</span></td>
+        <td>1. Instant activation – Customers gain access to all Gold features (Reimbursements, MCC, Factura, Cashback) immediately after signing, without waiting for manual Ops intervention.
+2. Accurate, transparent billing – Automated fee and overage tracking ensures every charge, cashback, and expiration is handled precisely—no surprises or missed rewards.
+3. Seamless experience – A single, smooth transition from Basic to Gold eliminates delays, errors, and back-and-forth emails during onboarding.
+4. Smarter in-platform visibility – Basic admins see relevant Gold prompts in-app, helping them understand the value of upgrading and unlocking advanced features effortlessly.</td>
+        <td></td>
+        <td>Douglas</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Simplify Roles + Permissions and make Member drawer editable by default (remove “Edit” step)</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Megapod</span></td>
+        <td>1. Instant clarity on user access – Finance teams can see exactly what a user can do in one place, without navigating or decoding multiple sections.
+2. Faster, safer access changes – Roles and permissions can be adjusted immediately from the member drawer, reducing friction and admin overhead.
+3. Reduced admin errors and rework – Clear role descriptions and visible permissions eliminate guesswork and prevent over- or under-provisioning.
+4. Stronger governance with less effort – Always-visible permissions make access decisions explainable and auditable without slowing daily operations.</td>
+        <td>TBC</td>
+        <td>Anish</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>R3 _ Reimbursement upgrades (adding factura generation)</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Megapod</span></td>
+        <td>1. Full compliance – reimbursements now support SAT Factura generation for tax-valid expense reporting in Mexico.
+2. Unified workflows – employees can manage both card and personal spend in one consistent flow.
+3. Reduced manual work – eliminates the need to upload external XML or PDF facturas separately.
+4. Better audit readiness – finance teams have centralized visibility of all SAT-compliant spend, including reimbursements.</td>
+        <td></td>
+        <td>Anish</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Travel agent V1.1 - Post Action on approval (create card, increase limit)</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Megapod</span></td>
+        <td>1. Instant enablement – Once a travel or spend request is approved, the employee automatically receives the tools they need (card or higher limit) without waiting for manual processing.
+2. Reduced admin workload – Finance teams no longer need to manually create cards or adjust limits after every approved request.
+3. Frictionless employee experience – Approvals translate directly into action, improving turnaround time for trips, events, or high-value purchases.
+4. Consistent policy enforcement – Every post-approval action adheres to predefined rules, ensuring spend control and audit readiness across all approvals.</td>
+        <td></td>
+        <td>Anish</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Merchant allowed and blocked lists</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Megapod</span></td>
+        <td>1.Granular control – define card permissions at the individual merchant level for precise spend governance.
+2. Enhanced fraud protection – block high-risk or unauthorized merchants instantly to reduce exposure.
+3. Policy flexibility – apply allow/block rules dynamically during card creation or through reusable policy lists.
+4. Operational consistency – ensure organization-wide compliance through centrally managed, reusable merchant lists.</td>
+        <td></td>
+        <td>Anish</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Zendesk updates: no more needing of providing data when zendesk is opened by an autenticated session + outverse integration + this ticket</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Megapod</span></td>
+        <td>1. Personalized experience – logged-in clients are instantly recognized, eliminating repetitive questions about email, region, or role.
+2. Faster support resolution – authenticated user data (region, role, verified phone, etc.) is passed automatically into Zendesk tickets.
+3. Localized onboarding for visitors – non-logged users see tailored chat flows per country and language for better regional engagement.
+4. Streamlined integration – Outverse connects directly with CMS and Zendesk, ensuring seamless data flow and reducing manual agent effort.</td>
+        <td></td>
+        <td>Anish</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Replace Heron with LLM</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Megapod</span></td>
+        <td>1. Clear transaction visibility – surface clean, recognizable merchant names so cardholders instantly understand their spend.
+2. Faster reconciliation – eliminate guesswork from raw, processor-heavy merchant strings during expense review.
+3. Reduced support load – minimize disputes and inquiries caused by unrecognized or confusing merchant names.
+4. Cost efficiency – replace Heron with a scalable LLM-based approach to significantly lower monthly processing costs.
+5. Quality control at scale – monitor and refine merchant cleaning output through a real-time lookup dashboard.</td>
+        <td></td>
+        <td>Anish</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Email Receipt Forwarding</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Megapod</span></td>
+        <td>Competitors (e.g., Clara, Ramp) are promoting “email-based” expense reconciliation. We should not support “read your emails” or inbox access due to trust, security, and perception concerns.Instead, we want a forward-only email ingestion flow, functionally equivalent to our WhatsApp receipt flow, that allows users to forward receipts or invoices to a dedicated Jeeves email address and have them automatically matched to the correct transaction.This should be framed and implemented as “forward your receipt”</td>
+        <td></td>
+        <td>Anish</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Accounting UI Improvements and Feature Engagement</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Accounting</span></td>
+        <td>Improve the engagement with the Accounting page by introducing highly asked for UI improvements to usability</td>
+        <td></td>
+        <td>Dylan</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Accounting Redshift Migration</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Accounting</span></td>
+        <td>Tech Debt. Migrating the accounting tables to RedShift will allow for cleaner implementations going forward, as well as less errors</td>
+        <td></td>
+        <td>Dylan</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>AI Setup Automation: Phase 2: Auto-Mapping</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Accounting</span></td>
+        <td>This will considerably simplify the currently manual and confusing process of setting up a company's accounting information so that they can immediately begin to get value out of the Accounting features.</td>
+        <td></td>
+        <td>Dylan</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Match receipts to card transactions via WhatsApp</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Megapod</span></td>
+        <td>1. Frictionless receipt capture – upload receipts instantly from mobile without searching for the related transaction first.
+2. Automatic matching – use OCR to extract key data and intelligently attach receipts to the correct card transaction.
+3. Cleaner expense reviews – reduce manual follow-ups by ensuring receipts are correctly linked at the time of upload.
+4. No lost receipts – store unmatched receipts in a dedicated holding area for later action.</td>
+        <td>--</td>
+        <td>Anish</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Email track open rate</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Megapod</span></td>
+        <td></td>
+        <td></td>
+        <td>Anish</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Travel agent V1.1- Add Budget Estimation to Trip Request Flow</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Megapod</span></td>
+        <td>1. Faster, higher-confidence approvals – Approvers see an estimated trip cost upfront, reducing back-and-forth questions and approval delays.
+2. More complete requests from employees – Employees submit approval-ready requests with clear financial context, aligning expectations early.
+3. More consistent decision-making – Budget visibility helps approvers quickly judge reasonableness and policy alignment across requests.
+4. Stronger audit and spend tracking foundation – Captured budget estimates are stored for audit history and future comparison against actual spend.</td>
+        <td></td>
+        <td>Anish</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>USD/MXN - M2 migration</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Cards</span></td>
+        <td>Recurrent project to migrate companies from Jeeves 1.0 to Jeeves 3.0.</td>
+        <td>--</td>
+        <td>Douglas</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Cards Production Health (M2)</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Cards</span></td>
+        <td>Recurrent project to analyse and fix bugs in production.</td>
+        <td>--</td>
+        <td>Douglas</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Cards API: Onboarding (M2)</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Cards</span></td>
+        <td>Recurrent project to onboard new customers to Jeeves Cards API.</td>
+        <td>--</td>
+        <td>Douglas</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Pricing Plans: Usage-based charges</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Cards</span></td>
+        <td></td>
+        <td></td>
+        <td>Douglas</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Pricing Plan: Platform Fee for SF customers</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Cards</span></td>
+        <td>1. Implement the rules to charge platform fee from SF customers.</td>
+        <td></td>
+        <td>Douglas</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Real-time Fraud Verification</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Cards</span></td>
+        <td>1. Card declines due to fraud verification is a point of friction with our customers and a recurrent complaint to customer support.
+2. Allow the cardholder to self-unblock when they recognize a transaction declined by fraud verification.</td>
+        <td></td>
+        <td>Douglas</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>DeductAjustment & LoadAdjustment Rules</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Cards</span></td>
+        <td>1. A customer should not have any pending transactions for more than 30 days.
+2. By solving pending transactions, we guarantee that customers won't have pending transactions locking their CL.</td>
+        <td></td>
+        <td>Douglas</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>World Elite in LATAM</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Cards</span></td>
+        <td>1. Premium card with enhanced benefits, mainly targeting company owners and c-level employees.</td>
+        <td>TBC</td>
+        <td>Douglas</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Travel agent V1.1- Show Users Assigned to Each Policy in Policy Manager</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Megapod</span></td>
+        <td>1. Instant visibility into policy impact – Admins can immediately see how many users are governed by a policy without navigating away or cross-referencing settings.
+2. Safer policy changes – Clear user assignment visibility helps admins confidently edit, deactivate, or delete policies without accidentally affecting active users.
+3. Reduced admin effort – Eliminates manual checks across teams and settings, saving time especially for large orgs or temporary policies.
+4. Improved auditability and governance – Real-time user lists make it easier to validate policy configuration and demonstrate control during reviews or audits.</td>
+        <td></td>
+        <td>Anish</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Travel agent V1.1- Manage Policy Members Directly from Policy Screen</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Megapod</span></td>
+        <td>1. Faster policy updates – Admins can add or remove users without leaving the policy screen, reducing friction and context switching.
+2. Safer exception handling – Quick member changes make it easier to handle temporary travel exceptions or short-term policies without mistakes.
+3. Immediate enforcement confidence – Changes take effect instantly and are reflected everywhere the policy applies, reducing uncertainty.
+4. Lower admin overhead – Streamlined member management cuts down on repetitive navigation and manual coordination for policy changes.</td>
+        <td></td>
+        <td>Anish</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Travel agent V1.1-Improve Copy When Deactivating or Deleting Policies with Assigned Users</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Megapod</span></td>
+        <td>1. Immediate clarity on blocked actions – Admins clearly understand why a policy cannot be deactivated or deleted when users are still assigned.
+2. Reduced frustration and retries – Explicit messaging eliminates confusion and prevents repeated failed attempts or support tickets.
+3. Guided resolution – Clear copy tells admins exactly what to do next (remove or reassign users) to complete the action successfully.
+4. More consistent policy management experience – Uniform messaging across deactivate and delete flows improves usability and trust in the system.</td>
+        <td></td>
+        <td>Anish</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>B2B Pay: Implement file exchange to unlock partnership</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Cards</span></td>
+        <td>1. B2B Pay is the second largest payment processor for travel in Brazil, so a new source to acquire customers and expand our VCN product.</td>
+        <td></td>
+        <td>Douglas</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Cards API: Webhook Support</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Cards</span></td>
+        <td>1. At the moment of the transaction, our VCN customer will subscribe and receive notifications with the corresponding status.
+2. It's the trigger to solve potential issues with their vendors.</td>
+        <td>TBC</td>
+        <td>Douglas</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Colombia MB invoicing report</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Wallet</span></td>
+        <td>Internal enablement task for Colombian customers invoicing process</td>
+        <td>February 2</td>
+        <td>Pedro</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>MX Invoicing Report for SOFOM orgs</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Wallet</span></td>
+        <td>Create and maintain a SOFOM-specific invoice template/query for Mexico, aligned to the existing MX template.</td>
+        <td>February 2</td>
+        <td>Pedro</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>LLM Translation of Payment Failures to Customer-Readable Messages</strong><br/><span style="font-size:0.75rem;color:var(--muted);">AP</span></td>
+        <td>AI driven customer facing messages for payment failures based on the technical error code and message shared by our payment processing partners</td>
+        <td>February 19</td>
+        <td>Pedro</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>In-Progress Status for Stablecoin Deposits</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Wallet</span></td>
+        <td>Reduce customer anxiety and support burden by clearly signaling when a stablecoin deposit has been received by Bridge but is still undergoing FX conversion, instead of appearing “missing” for 10–30 minutes.</td>
+        <td>Feb 17</td>
+        <td>Pedro</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Support for Saudi Arabia, Egypt and Israel payouts (local and USD)</strong><br/><span style="font-size:0.75rem;color:var(--muted);">AP</span></td>
+        <td>Enable payment flows to Saudi Arabia, Egypt and Israel payouts (local and USD)</td>
+        <td></td>
+        <td>Kunal</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Failed Payment investigation agent (internal)</strong><br/><span style="font-size:0.75rem;color:var(--muted);">AP</span></td>
+        <td>AI agent that automatically investigates every failed payment across logs, traces, and DB state, identifies the most likely root cause, and proactively surfaces a structured diagnosis to Engineering via Slack.</td>
+        <td>TBC</td>
+        <td>Pedro</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Payments Agent: In-Line Vendor Creation from Bulk Upload</strong><br/><span style="font-size:0.75rem;color:var(--muted);">AP</span></td>
+        <td>1. Customer uploads any file, any format: No need to reformat bulk payment files to adap to the Jeeves template.
+2. Automatic vendor matching & creation: Reduces manual work and speeds setup – bridgin the gap between vendor management and bulk pay.</td>
+        <td>TBC</td>
+        <td>Pedro</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Proof of deposits</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Wallet</span></td>
+        <td></td>
+        <td>Feb 24</td>
+        <td>Kunal</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Next-Gen Invoice Forwarding (Per-Entity Inboxes)</strong><br/><span style="font-size:0.75rem;color:var(--muted);">AP</span></td>
+        <td>Enable reliable, zero-ambiguity invoice forwarding for multi-entity customers by introducing dedicated invoice inboxes per entity, while preserving existing bill creation behavior.</td>
+        <td>TBC</td>
+        <td>Pedro</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Accounts Page design update</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Wallet</span></td>
+        <td>Make stablecoin usage feel first‑class, intuitive, and purpose‑built for cross‑border money movement — not a workaround on top of vendor payments.
+
+Remove ambiguity between *accounts, wallets, payments, conversions, and withdrawals* in the stablecoin experience.</td>
+        <td>TBC</td>
+        <td>Pedro</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Crypto Onramp (USDC/USDT)</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Wallet</span></td>
+        <td>Enable customers to fund their Bridge stablecoin wallets by sending **USDC** or **USDT** directly. Expose crypto account wallet details in the "Account details for funding"</td>
+        <td></td>
+        <td>Kunal / Pedro</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Manual transfers between 3P Stablecoin Accounts</strong><br/><span style="font-size:0.75rem;color:var(--muted);">AP</span></td>
+        <td>Enable a manual workaround (no UI, BE execution via APIs only) to allow customers to transfer funds between customer 3P wallets</td>
+        <td></td>
+        <td>Kunal</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>“Run Your AP on Jeeves” Interactive Demo</strong><br/><span style="font-size:0.75rem;color:var(--muted);">AP</span></td>
+        <td>A lightweight, guided AP demo accessible directly in-product, so Treasury users see Jeeves as an end-to-end AP system</td>
+        <td></td>
+        <td>Pedro / Dylan</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Progressive AP Policy Nudges</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Wallet</span></td>
+        <td>Progressively guide customers from Payments-only → Governed Payments → Full AP workflows, without forcing upfront complexity. This first release focuses on driving Payment Release Policy adoption for customers with no governance.</td>
+        <td></td>
+        <td>Pedro</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Automate Collection Fee Application</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Wallet</span></td>
+        <td>Automatically determine the customer’s outstanding balance at the end of Day 15 of the new billing cycle, in order to consistently calculate and apply a 10% Collection Fee on that amount across CO and BR.</td>
+        <td>TBC</td>
+        <td>Pedro</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>28 cycles CO: Automate Jeeves Pay Interest Collection on Grace Period  (7 Days)</strong><br/><span style="font-size:0.75rem;color:var(--muted);">AP</span></td>
+        <td>This replaces the current manual Ops process and is a prerequisite to scaling to 28 billing cycles in Colombia.</td>
+        <td>TBC</td>
+        <td>Pedro</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Convert funds enhancement</strong><br/><span style="font-size:0.75rem;color:var(--muted);">AP</span></td>
+        <td>Elevate the Convert Funds into a first-class wallet capability with a redesigned flow that enables bi-directional amount input with real-time rate calculation.</td>
+        <td>TBC</td>
+        <td>Pedro</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>28 cycles CO: Pending Transactions at Statement Cutoff (High Risk Area)</strong><br/><span style="font-size:0.75rem;color:var(--muted);">AP</span></td>
+        <td>Implement a billing-day cutoff time to shift late payments to the next business day, effectively minimizing pending transaction risks with low technical effort but high customer friction.</td>
+        <td>TBC</td>
+        <td>Pedro</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>MX: Self Funded Payments powered by Direct Debit (Druo)</strong><br/><span style="font-size:0.75rem;color:var(--muted);">AP</span></td>
+        <td>Allow MX customers to initiate local or cross-border payments funded directly from an external bank account, instead of using Jeeves Credit or Self-Funded balances.</td>
+        <td>TBC</td>
+        <td>Pedro</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Mobile Reimbursements</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Megapod</span></td>
+        <td>1. Submit on the go – create, edit and track reimbursement requests from the phone with receipt upload.
+2. Faster approvals – approvers act from mobile; status updates reduce back‑and‑forth.
+3. Fewer mistakes – policy‑aware forms improve first‑pass success.
+4. Audit‑ready – timestamps, receipts and approval trails are stored for compliance.</td>
+        <td>TBC</td>
+        <td>Jason</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>UI Improvement: Card Claiming & Card Activation</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Cards</span></td>
+        <td>1. Give evidence to card claiming and card activation, so users can quickly take aciton on their physical cards.</td>
+        <td></td>
+        <td>Douglas</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>MARCH</strong><br/><span style="font-size:0.75rem;color:var(--muted);">MARCH</span></td>
+        <td></td>
+        <td></td>
+        <td>MARCH</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>JP Flow Design Rework</strong><br/><span style="font-size:0.75rem;color:var(--muted);">AP</span></td>
+        <td>Redesign the current JP Flow, to make it an efficient bill payment flow we're all proud of</td>
+        <td></td>
+        <td>Pedro</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>CO: Self Funded Payments powered by PSE (Partner TBC)</strong><br/><span style="font-size:0.75rem;color:var(--muted);">AP</span></td>
+        <td>Enable Colombian customers to pay local vendors using their own funds collected via PSE.</td>
+        <td>TBC</td>
+        <td>Pedro</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Vendor documents and support in the platform</strong><br/><span style="font-size:0.75rem;color:var(--muted);">AP</span></td>
+        <td>Have the ability to attach documents to the vendor’s profile—such as tax IDs, contracts, agreements, NDAs, and other documents required by local regulations for each entity. This can help avoid losing any information and ensures it is always accessible in case of an audit or an urgent request.</td>
+        <td>TBC</td>
+        <td>Pedro</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Vendor Management Policy</strong><br/><span style="font-size:0.75rem;color:var(--muted);">AP</span></td>
+        <td>1. Strengthens security by requiring approval for new vendors and sensitive changes like bank info or tax IDs.
+2. Reduces fraud and data-quality issues through structured oversight tied to vendor owners and admins.
+3. Improves visibility and control with a dedicated “Pending Vendor Approvals” section and full audit trails.</td>
+        <td>TBC</td>
+        <td>Pedro</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>VCN: Card Spend Limit in Foreign Currency</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Cards</span></td>
+        <td>1. VCN customers will be able to define the card spend limit in foreign currency, ideally matching the reservation amount.
+2. For international bookings, customers will be able to match the merchant currency with the card spend limit.</td>
+        <td>TBC</td>
+        <td>Douglas</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Apple Pay & Google Pay</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Cards</span></td>
+        <td>1. Instant "In-Person" Power for Virtual Cards: by integrating with digital wallets, customers can instantly issue a virtual card  and use it in brick-and-mortar stores.
+2. Enhanced Security via Tokenization & Biometrics: Apple and Google Pay replace sensitive card numbers with an unique encrypted token for every transaction.
+3. Frictionless Travel & Expense Experience: Digital wallets allow for contactless payment without fumbling for a wallet or entering PINs.</td>
+        <td></td>
+        <td>Douglas</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Revisit logic for capturing approved vs not-required payment statuses</strong><br/><span style="font-size:0.75rem;color:var(--muted);">AP</span></td>
+        <td>1. Improved data integrity – approvals now accurately reflect whether a payment passed through a JP policy.
+2. Clearer reporting – analytics and dashboards can reliably separate policy-driven approvals from bypassed cases.
+3. Better compliance tracking – finance teams gain visibility into true policy enforcement rates.
+4. Reliable automation – downstream triggers (e.g., reconciliations, alerts) now execute only on genuinely approved payments.</td>
+        <td></td>
+        <td>Pedro</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Pricing Plan: Fees for Card ATM Withdrawals</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Cards</span></td>
+        <td>1. Give transparency to customers on how much they're being charged for ATM transactions.</td>
+        <td></td>
+        <td>Douglas</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Stablecoin: COP Onramp</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Wallet</span></td>
+        <td>Build with dLocal the ability to accept COP and convert to USDB</td>
+        <td></td>
+        <td>Kunal</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Installments in Brazil with Paymentology</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Cards</span></td>
+        <td>1. Unlock Brazilian customers to pay with credit card in installments, capturing larger purchases.</td>
+        <td>TBC</td>
+        <td>Douglas</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>USD/MXN - M3 migration</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Cards</span></td>
+        <td>Recurrent project to migrate companies from Jeeves 1.0 to Jeeves 3.0.</td>
+        <td>--</td>
+        <td>Douglas</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Cards Production Health (M3)</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Cards</span></td>
+        <td>Recurrent project to analyse and fix bugs in production.</td>
+        <td>--</td>
+        <td>Douglas</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Cards API: Onboarding (M3)</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Cards</span></td>
+        <td>Recurrent project to onboard new customers to Jeeves Cards API.</td>
+        <td>--</td>
+        <td>Douglas</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Card Replacement with ABU File</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Cards</span></td>
+        <td>1. Allow the user to replace a card without having to cancel and request a new card.
+2. Create a seamless experience for virtual and physical cards, including World Elite.
+3. When a card is replaced, update all card on file merchants with the new card number - ABU file.</td>
+        <td>TBC</td>
+        <td>Douglas</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>RegCheq 1.1 Updates</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Megapod</span></td>
+        <td></td>
+        <td></td>
+        <td>Dylan</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>New Finance Team Member role</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Megapod</span></td>
+        <td>1. Grant precise access without over-permissioning Give finance and ops teammates access to AP, reimbursements, and spend visibility without full admin rights.
+2. Scale finance workflows as teams grow Support mid-tier roles like AP and reimbursement managers without routing all work through a single admin.
+3. Reduce risk while maintaining control Keep admin-only settings locked down while enabling day-to-day finance operations.
+4. Simplify onboarding and role management Assign the right access at invite or edit, with clear role labels and configurable permissions.</td>
+        <td>TBC</td>
+        <td>Anish</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Employee role — default optional permissions OFF (and reset when switching to Employee)</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Megapod</span></td>
+        <td>1. Grant precise access without over-permissioning Give finance and ops teammates access to AP, reimbursements, and spend visibility without full admin rights.
+2. Scale finance workflows as teams grow Support mid-tier roles like AP and reimbursement managers without routing all work through a single admin.
+3. Reduce risk while maintaining control Keep admin-only settings locked down while enabling day-to-day finance operations.
+4. Simplify onboarding and role management Assign the right access at invite or edit, with clear role labels and configurable permissions.</td>
+        <td>TBC</td>
+        <td>Anish</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Bookkeeper role consistency</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Megapod</span></td>
+        <td>1. Treat bookkeepers as first-class finance users Align the Bookkeeper role with other core roles, matching customer expectations for internal finance teams.
+2. Enable flexible role changes over time Allow bookkeepers to be reassigned to other roles as responsibilities evolve.
+3. Remove unexpected card restrictions Ensure card eligibility follows permission logic, not hard role-type blocks.
+4. Reduce confusion in role management Present Bookkeeper as a standard role in role selection, improving clarity and admin confidence.</td>
+        <td>TBC</td>
+        <td>Anish</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Bulk card control editing</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Megapod</span></td>
+        <td>1. Time savings – update dozens or hundreds of cards in seconds instead of one-by-one.
+2. Error reduction – bulk confirmation and audit logging prevent inconsistent manual edits.
+3. Stronger control – enforce company-wide or department-level spend policies instantly.
+4. Operational flexibility – temporary or recurring changes (e.g., during events or campaigns) can be applied in bulk without IT involvement.</td>
+        <td></td>
+        <td>Anish</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Card Upgrade with ABU File</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Cards</span></td>
+        <td>1. Allow the customer to upgrade the card from regular physical card to World Elite without having to cancel the card.</td>
+        <td>TBC</td>
+        <td>Douglas</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Surface AI Receipt Match Evaluation in Transaction Modal</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Megapod</span></td>
+        <td>Instant Confidence in Receipt Accuracy
+Customers can immediately see whether a receipt matches the transaction, reducing guesswork and manual verification.
+
+Faster Close and Easier Audits
+Early detection of mismatched receipts minimizes back-and-forth during month-end close and audit reviews.
+
+Stronger Compliance Without Added Friction
+AI-driven validation improves control and accuracy without blocking cardholders or adding extra workflow steps.</td>
+        <td>TBC</td>
+        <td>Anish</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Multi Org Experience (Phase 0)</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Megapod</span></td>
+        <td>1. Single-session finance workflows – access statements and transactions across all orgs without repeated logins or context switching.
+2. Faster month-end close – export statements and transactions per org or across orgs in one flow while preserving entity-level identifiers.
+3. Reduced operational repetition – eliminate org-by-org manual work for high-frequency accounting tasks.
+4. Lower risk of accounting errors – maintain clear org context across views and exports to prevent cross-entity mistakes.</td>
+        <td>--</td>
+        <td>Anish</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Employee Card Transaction Categorization</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Megapod</span></td>
+        <td>1. Cleaner spend attribution at source – enable employees to categorize transactions by department, location, and custom fields at the time of purchase.
+2. Reduced accounting rework – minimize manual corrections by allowing bookkeepers and admins to review and override categorizations only when needed.
+3. Stronger policy compliance – enforce mandatory categorization through policies to ensure every transaction is properly tagged.
+4. Improved adoption for multi-location orgs – support real-world operational structures (departments, locations) to make Jeeves viable for complex spend management use cases.</td>
+        <td></td>
+        <td>Anish</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>MOVED TO R2</strong></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>SAP S4Hana Integration</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Accounting</span></td>
+        <td>Introduce an SAP Accounting integration, unlocking large players in the market that require an integration to confidently use the Jeeves platform.</td>
+        <td></td>
+        <td>Dylan</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>NetSuite Partnership</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Accounting</span></td>
+        <td>Become an official NetSuite partner app in LatAm, allowing for NetSuite customers to discover us through the NetSuite platform as an official cards + payment solution.</td>
+        <td></td>
+        <td>Dylan</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>CANCELED</strong><br/><span style="font-size:0.75rem;color:var(--muted);">CANCELED</span></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>CMS Tighter Controls</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Megapod</span></td>
+        <td>Mitigate Audit & Financial risk by implementing "Maker/Checker" approvals for Credit Limit changes.</td>
+        <td></td>
+        <td>Jason</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Pluggy Integration</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Megapod</span></td>
+        <td>Customers don't have to provide bank statements and more customers can now be eligible for larger proactive CLIs with this data</td>
+        <td></td>
+        <td>Jason</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Bill & Payment Approval Discussion (In-Platform Communication)</strong><br/><span style="font-size:0.75rem;color:var(--muted);">AP</span></td>
+        <td></td>
+        <td>--</td>
+        <td>Pedro</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Enable CREAM experience for all customers (USD Credit)</strong><br/><span style="font-size:0.75rem;color:var(--muted);">AP</span></td>
+        <td></td>
+        <td>TBC</td>
+        <td>Pedro</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Enforce invoice Policies</strong><br/><span style="font-size:0.75rem;color:var(--muted);">AP</span></td>
+        <td>1. Stronger spend controls: Bills above the threshold cannot be sent without an invoice, reducing policy violations.
+2. Reduced risk of errors or non-compliance: Mandatory enforcement ensures all required documentation is attached before approval.
+3. Clear guidance for users: Red banners and error states provide immediate feedback, minimizing confusion.</td>
+        <td>TBC</td>
+        <td>Pedro</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Multi-Org Phase 1: Cross-Org Statements & Transactions</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Megapod</span></td>
+        <td>1. Faster month-end close: Finance teams can access statements and transactions across all orgs without logging in and out of each entity.                                                                      2. Reduced operational overhead: Export transactions across orgs with clear entity identifiers, eliminating repeated manual workflows.                                                                     3. Lower accounting risk: Clear org/entity context in UI and exports reduces reconciliation errors for multi-entity companies.</td>
+        <td></td>
+        <td>Anish</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+      <tr>
+        <td><strong>Multi-Org Phase 2: Finance Visibility & Treasury</strong><br/><span style="font-size:0.75rem;color:var(--muted);">Megapod</span></td>
+        <td>1. Executive visibility: CFOs and finance leaders can see balances, credit exposure, and spend across entities in one place.                                             2. Treasury efficiency: Faster decision-making with clear cross-org liquidity visibility and safe drill-downs to org-level actions.                                                                                     3. Stronger governance: Clear separation between visibility and execution preserves auditability while improving control.”</td>
+        <td></td>
+        <td>Anish</td>
+        <td><span class="tag tag-gray" style="font-size:0.7rem;">—</span></td>
+      </tr>
+    </tbody></table></div>
+
+<div class="initiative-stage">
+  <div class="initiative-stage-header">
+    <h4><span class="tag tag-gray">yes</span></h4>
+    <span class="count-badge">9</span>
+  </div>
+  <table>
+    <thead><tr><th>Initiative</th><th>Pillar</th><th>Owner</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr>
+          <td>POC - U/W data pipelines in Colombia  (DIAN integration, provider Konvex?)</td>
+          <td>DIAN, Colombia's tax authority, for retrival of Colombian businesses tax and revenue data for a potentially higher credit limit</td>
+          <td></td>
+          <td>No</td>
+        </tr>
+      <tr>
+          <td>POC - U/W integration in Brazil for Duplicates / Card Receivables - (CERC integration)</td>
+          <td>Ability to increase credit limit by securitizing the customers' dupulicatas / card receivables</td>
+          <td></td>
+          <td>No</td>
+        </tr>
+      <tr>
+          <td>Fraud and security:  move 3DS to the app from SMS</td>
+          <td>1. Stronger protection – in-app 3DS removes exposure to SIM-swap and SMS interception attacks.
+2. Faster checkout – users approve transactions instantly within the app, without waiting for a code.
+3. Higher completion rates – fewer timeouts or failed authentications improve transaction success.
+4. Consistent global UX – one unified, app-based flow across all regions and devices.</td>
+          <td></td>
+          <td></td>
+        </tr>
+      <tr>
+          <td>“Can create and manage card spend limits” permission</td>
+          <td>1. Granular access control – delegate card issuance and limit management without granting full admin or treasury access.
+2. Improved security – supports least-privilege principles, reducing the risk of unauthorized access or configuration changes.
+3. Simpler delegation – permissions can be granted per user directly from the Teams → Members page.
+4. Future-ready framework – establishes a unified permission model that integrates seamlessly with other upcoming access-based features (e.g., Policies & Approvals).</td>
+          <td></td>
+          <td></td>
+        </tr>
+      <tr>
+          <td>Fraud and security:  new MFA implementation with code rendered on screen (like github and google)</td>
+          <td>1. Stronger account protection – on-screen MFA codes greatly reduce risks of phishing or message interception.
+2. Modernized experience – familiar, secure verification flow consistent with trusted platforms like GitHub and Google.
+3. Faster authentication – eliminates delays caused by email or SMS delivery failures.
+4. Higher reliability – ensures users can always complete MFA, even if communication channels are unavailable.</td>
+          <td></td>
+          <td></td>
+        </tr>
+      <tr>
+          <td>Post card transactions approvals</td>
+          <td>1. Stronger spend control without slowing teams – review and approve expenses after the transaction using configurable, multi-layer approval flows.
+2. Review by exception – automatically route only out-of-policy, high-value, or anomalous transactions for approval to reduce manager workload.
+3. Faster, clearer resolution – give managers and admins all context (receipt, notes, flags) in one place to approve or reject expenses quickly.
+4. Enterprise-grade compliance at scale – enforce consistent approval rules across teams, regions, and currencies while maintaining a simple employee experience.</td>
+          <td></td>
+          <td>No</td>
+        </tr>
+      <tr>
+          <td>R3 _ Spend management basics - User Limits (Employee Budget)</td>
+          <td>1. Unified spend control – manage all of an employee’s card spend through a single, consolidated budget.
+2. Greater flexibility – set one-time or recurring budgets that automatically reset per period.
+3. Transparency & accountability – real-time notifications show when a decline is due to budget or card limit.
+4. Simplified management – adjust budgets directly from the Teams page without changing card limits.</td>
+          <td></td>
+          <td></td>
+        </tr>
+      <tr>
+          <td>Vendor Management Policy (Claudio will drive policy definition and Money team will introduce the concept of vendor in status pending)</td>
+          <td>1. Stronger vendor governance – critical vendor creations and edits require explicit approval, minimizing fraud and compliance risks.
+2. Smarter routing – approvals are automatically directed to the vendor owner’s manager or default admin, ensuring accountability without slowing operations.
+3. End-to-end visibility – pending changes, approvals, and audit trails are all visible in one place for easy tracking and review.
+4. Transparent notifications – vendor owners and approvers receive automatic alerts for edits, approvals, and pending items, keeping all stakeholders informed.</td>
+          <td></td>
+          <td></td>
+        </tr>
+      <tr>
+          <td>Niva Onboarding Automation</td>
+          <td>This integration will allow up to fill in the majority of a users application for them, without error, allowing for a much faster and accurate onboarding experience.</td>
+          <td></td>
+          <td></td>
+        </tr>
+    </tbody></table></div>
+
+</div><!-- .container -->
+
+<script>
+Chart.defaults.color = '#94a3b8';
+Chart.defaults.borderColor = '#334155';
+
+// ── Burndown Chart ──────────────────────────────
+const burndownCtx = document.getElementById('burndownChart');
+if (burndownCtx) {
+  new Chart(burndownCtx, {
+    type: 'line',
+    data: {
+      labels: ["Feb 10", "Feb 11", "Feb 12", "Feb 13", "Feb 14", "Feb 15", "Feb 16", "Feb 17", "Feb 18", "Feb 19", "Feb 20", "Feb 21", "Feb 22", "Feb 23"],
+      datasets: [{"label": "Ideal", "data": [329.0, 303.7, 278.4, 253.1, 227.8, 202.5, 177.2, 151.8, 126.5, 101.2, 75.9, 50.6, 25.3, 0], "borderColor": "#475569", "borderDash": [6, 4], "borderWidth": 2, "pointRadius": 0, "tension": 0, "fill": false}, {"label": "Megapod", "data": [182, 183, 170, 168, 168, 167, 172, 159, 149, 148, 149, 149, 137, 18], "borderColor": "#6366f1", "backgroundColor": "#6366f122", "tension": 0.3, "fill": false, "borderWidth": 2}, {"label": "Accounting", "data": [37, 37, 37, 37, 37, 42, 42, 37, 37, 38, 38, 38, 40, 11], "borderColor": "#f59e0b", "backgroundColor": "#f59e0b22", "tension": 0.3, "fill": false, "borderWidth": 2}, {"label": "AP", "data": [84, 79, 80, 81, 83, 87, 84, 87, 80, 71, 71, 75, 75, 74], "borderColor": "#10b981", "backgroundColor": "#10b98122", "tension": 0.3, "fill": false, "borderWidth": 2}, {"label": "Cards", "data": [45, 46, 47, 47, 48, 47, 47, 60, 61, 60, 60, 59, 53, 37], "borderColor": "#3b82f6", "backgroundColor": "#3b82f622", "tension": 0.3, "fill": false, "borderWidth": 2}, {"label": "Wallet", "data": [59, 63, 62, 62, 60, 61, 61, 58, 57, 59, 59, 59, 56, 50], "borderColor": "#ec4899", "backgroundColor": "#ec489922", "tension": 0.3, "fill": false, "borderWidth": 2}]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'top' } },
+      scales: {
+        x: { grid: { color: '#334155' } },
+        y: { grid: { color: '#334155' }, title: { display: true, text: 'Remaining Points' } }
+      }
+    }
+  });
+}
+
+// ── Pod Tickets Chart ───────────────────────────
+const podTicketsCtx = document.getElementById('podTicketsChart');
+if (podTicketsCtx) {
+  new Chart(podTicketsCtx, {
+    type: 'bar',
+    data: {
+      labels: ["Megapod", "Accounting", "AP", "Cards", "Wallet"],
+      datasets: [
+        {
+          label: 'Completed',
+          data: [76, 14, 47, 37, 53],
+          backgroundColor: ["#6366f1", "#f59e0b", "#10b981", "#3b82f6", "#ec4899"],
+          borderRadius: 6,
+        },
+        {
+          label: 'Remaining',
+          data: [9, 1, 3, 5, 2],
+          backgroundColor: ["#6366f144", "#f59e0b44", "#10b98144", "#3b82f644", "#ec489944"],
+          borderRadius: 6,
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'top' } },
+      scales: {
+        x: { stacked: true, grid: { color: '#334155' } },
+        y: { stacked: true, grid: { color: '#334155' }, title: { display: true, text: 'Tickets' } }
+      }
+    }
+  });
+}
+
+// ── Pod Points Chart ────────────────────────────
+const podPointsCtx = document.getElementById('podPointsChart');
+if (podPointsCtx) {
+  new Chart(podPointsCtx, {
+    type: 'bar',
+    data: {
+      labels: ["Megapod", "Accounting", "AP", "Cards", "Wallet"],
+      datasets: [
+        {
+          label: 'Burned',
+          data: [141, 13, 57, 44, 49],
+          backgroundColor: ["#6366f1", "#f59e0b", "#10b981", "#3b82f6", "#ec4899"],
+          borderRadius: 6,
+        },
+        {
+          label: 'Remaining',
+          data: [14, 0, 7, 2, 2],
+          backgroundColor: ["#6366f144", "#f59e0b44", "#10b98144", "#3b82f644", "#ec489944"],
+          borderRadius: 6,
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'top' } },
+      scales: {
+        x: { stacked: true, grid: { color: '#334155' } },
+        y: { stacked: true, grid: { color: '#334155' }, title: { display: true, text: 'Story Points' } }
+      }
+    }
+  });
+}
+
+// ── Next Sprint Pod Chart ───────────────────────
+const nextPodCtx = document.getElementById('nextPodChart');
+if (nextPodCtx) {
+  new Chart(nextPodCtx, {
+    type: 'bar',
+    data: {
+      labels: ["Megapod", "Accounting", "AP", "Cards", "Wallet"],
+      datasets: [
+        {
+          label: 'Tickets',
+          data: [83, 36, 64, 49, 64],
+          backgroundColor: ["#6366f1", "#f59e0b", "#10b981", "#3b82f6", "#ec4899"],
+          borderRadius: 6,
+          yAxisID: 'y',
+        },
+        {
+          label: 'Story Points',
+          data: [205, 17, 59, 66, 75],
+          backgroundColor: ["#6366f166", "#f59e0b66", "#10b98166", "#3b82f666", "#ec489966"],
+          borderRadius: 6,
+          yAxisID: 'y2',
+          type: 'line',
+          tension: 0.3,
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'top' } },
+      scales: {
+        x: { grid: { color: '#334155' } },
+        y: { grid: { color: '#334155' }, title: { display: true, text: 'Tickets' } },
+        y2: { position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'Points' } }
+      }
+    }
+  });
+}
+
+// ── Engineer Points Chart ───────────────────────
+const engPointsCtx = document.getElementById('engPointsChart');
+if (engPointsCtx) {
+  new Chart(engPointsCtx, {
+    type: 'bar',
+    data: {
+      labels: ["Aamiya Mahapatro", "Afsheen Irani", "Akash Gangrade", "Andrea Maroni", "Anish Kumar", "Ankul Kumar", "Apurva Singh", "Ashish Raj Agrawal", "Ashwin Yadav", "Axel Orendain", "Carlo Di Maio", "Claudio Comandini", "Daniel Valdez", "Diego Alvarez Garcia", "Dinesh Yadav", "Giacomo Berdondini", "Giovanni Landolina", "Harsh Gupta", "Jaidev (Bot)", "Jayesh Prajapati", "Jeeves AI Developer", "Keshav Gangopalwad", "Kevin Brewer", "Letícia Doniak", "Luca Venturini", "Mac Rarangol", "Marco Casadio", "Matheus Carvalhal", "Narendra Kumar Sharma", "Nicolas Gomes Greco", "Nidhi Dungarani", "Pablo Azpurua", "Pavaneswara Guptha Nsr", "Pedro Isaza", "Rafael Evangelista", "Sashe Klechkovski", "Vido Mladenovic", "edgar.retes@tryjeeves.com", "edin@tryjeeves.com", "eduard@tryjeeves.com", "luis.sena@tryjeeves.com", "rohith@tryjeeves.com"],
+      datasets: [{"label": "Megapod", "data": [0, 0, 16, 0, 0, 0, 0, 0, 0, 0, 11, 8, 0, 0, 0, 9, 19, 0, 0, 0, 3, 0, 0, 0, 19, 0, 7, 22, 0, 14, 0, 0, 0, 0, 15, 0, 18, 9, 20, 15, 0, 0], "backgroundColor": "#6366f1"}, {"label": "Accounting", "data": [0, 0, 0, 0, 9, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "backgroundColor": "#f59e0b"}, {"label": "AP", "data": [2, 0, 0, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 2, 0, 13, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 0, 0, 0, 0, 0, 0, 0, 9, 4], "backgroundColor": "#10b981"}, {"label": "Cards", "data": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 10, 14, 0, 0, 0, 0, 0, 4, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 18, 0, 0, 0, 0, 0, 0], "backgroundColor": "#3b82f6"}, {"label": "Wallet", "data": [0, 1, 0, 11, 0, 0, 0, 0, 13, 1, 2, 0, 2, 0, 0, 0, 0, 0, 1, 0, 14, 0, 0, 1, 0, 0, 0, 0, 14, 0, 13, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0], "backgroundColor": "#ec4899"}]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      indexAxis: 'y',
+      plugins: { legend: { position: 'top' } },
+      scales: {
+        x: { stacked: true, grid: { color: '#334155' }, title: { display: true, text: 'Story Points' } },
+        y: { stacked: true, grid: { color: '#33415577' }, ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+}
+
+// ── Pareto Chart ────────────────────────────────
+const paretoCtx = document.getElementById('paretoChart');
+if (paretoCtx) {
+  new Chart(paretoCtx, {
+    type: 'bar',
+    data: {
+      labels: ["MP-2503", "MP-2462", "MP-2367", "MP-2343", "MP-2328", "MP-1878", "MP-2504", "MP-2502", "MP-2501", "MP-2500", "MP-2499", "MP-2404", "MP-2402", "MP-2386", "MP-2349", "MP-2348", "MP-2339", "MP-2128", "PAY-11208", "PAY-11158", "PAY-10142", "WAL-4337", "PAY-11323", "MP-2498", "MP-2497"],
+      datasets: [
+        {
+          label: 'Story Points',
+          data: [8, 8, 8, 8, 8, 8, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 4, 3, 3],
+          backgroundColor: ["#6366f1", "#6366f1", "#6366f1", "#6366f1", "#6366f1", "#6366f1", "#6366f1", "#6366f1", "#6366f1", "#6366f1", "#6366f1", "#6366f1", "#6366f1", "#6366f1", "#6366f1", "#6366f1", "#6366f1", "#6366f1", "#10b981", "#10b981", "#10b981", "#ec4899", "#10b981", "#6366f1", "#6366f1"],
+          borderRadius: 4,
+          yAxisID: 'y',
+        },
+        {
+          label: 'Cumulative %',
+          data: [5.8, 11.6, 17.4, 23.2, 29.0, 34.8, 38.4, 42.0, 45.7, 49.3, 52.9, 56.5, 60.1, 63.8, 67.4, 71.0, 74.6, 78.3, 81.9, 85.5, 89.1, 92.8, 95.7, 97.8, 100.0],
+          type: 'line',
+          borderColor: '#f59e0b',
+          backgroundColor: '#f59e0b33',
+          tension: 0.3,
+          yAxisID: 'y2',
+          pointRadius: 3,
+          fill: true,
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top' },
+        tooltip: {
+          callbacks: {
+            afterBody: function(items) {
+              const i = items[0].dataIndex;
+              const titles = ["[AI] AI assistant integration of receipt managemen", "TPA: Fix create new trip flow", "Add Reimbursements Feature to Mobile App", "MCC 4722 is used by multiple categories - custom M", "Create Finance Team Member role", "Merchant allowed and blocked lists", "UI Custom categories", "Reconciliation engine load on redshift improvement", "[AI] documentation for supporting JAIDEV", "Finance Team Member role - ui changes", "RFI agent - openclaw integration", "Add Card Requests Section and Actions", "Card Requests", "Switch Stack Navigation to Bottom Bar method", "[Mexico Bundle] Automated Promissory Note Renewal ", "[Mexico Bundle] CMS: Promissory Note Tracking Dash", "[AI] Proactive WhatsApp Message After Card Transac", "NIVA: integrate document validation endpoint", "UI: Integrate AI Service with Inline Editor", "[backend, pts] Add raw error capture for Routefusi", "Backend Refactoring & Prep Work for Partner Error ", "BE: create crypto-to-crypto liquidation addresses", "Next-Gen Invoice Forwarding (Per-Entity Inboxes)", "RFI agent - slack notification", "RFI agent - email outbound"];
+              return 'Title: ' + titles[i];
+            }
+          }
+        }
+      },
+      scales: {
+        x: { grid: { color: '#334155' }, ticks: { font: { size: 10 } } },
+        y: { grid: { color: '#334155' }, title: { display: true, text: 'Story Points' } },
+        y2: {
+          position: 'right',
+          min: 0, max: 100,
+          grid: { drawOnChartArea: false },
+          title: { display: true, text: 'Cumulative %' },
+          ticks: { callback: v => v + '%' }
+        }
+      }
+    }
+  });
+}
+</script>
+</body>
+</html>
