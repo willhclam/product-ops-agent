@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Product Ops Report — Feb 11 – Feb 24, 2026</title>
+  <title>Product Ops Report — Sprint 30 | Feb 11–24, 2026</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
   <style>
     :root {
@@ -18,6 +18,9 @@
       --yellow: #f59e0b;
       --red: #ef4444;
       --blue: #3b82f6;
+      --pink: #ec4899;
+      --purple: #a855f7;
+      --teal: #14b8a6;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -25,850 +28,436 @@
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
-      padding: 0 0 60px 0;
+      padding: 0 0 80px 0;
     }
     header {
       background: var(--surface);
       border-bottom: 1px solid var(--border);
-      padding: 20px 32px;
+      padding: 18px 32px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       position: sticky; top: 0; z-index: 100;
     }
-    header h1 { font-size: 1.25rem; font-weight: 700; color: var(--text); }
-    header .meta { font-size: 0.8rem; color: var(--muted); text-align: right; }
-    .badge {
-      display: inline-block;
-      padding: 2px 10px;
-      border-radius: 999px;
-      font-size: 0.72rem;
-      font-weight: 600;
-      background: var(--accent);
-      color: #fff;
-      margin-left: 8px;
+    header h1 { font-size: 1.2rem; font-weight: 700; }
+    header .meta { font-size: 0.78rem; color: var(--muted); text-align: right; line-height: 1.5; }
+    .status-pill {
+      display: inline-block; padding: 3px 12px; border-radius: 999px;
+      font-size: 0.72rem; font-weight: 600; margin-left: 10px;
     }
-    .container { max-width: 1400px; margin: 0 auto; padding: 28px 24px; }
+    .pill-complete { background: #10b98133; color: var(--green); border: 1px solid #10b98155; }
+    .pill-active   { background: #6366f133; color: var(--accent); border: 1px solid #6366f155; }
+
+    .container { max-width: 1440px; margin: 0 auto; padding: 28px 24px; }
+
     .section-header {
-      font-size: 1.4rem; font-weight: 700;
-      border-left: 4px solid var(--accent);
-      padding-left: 14px;
-      margin: 36px 0 20px 0;
+      font-size: 1.3rem; font-weight: 700;
+      padding-bottom: 12px; margin-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 12px;
     }
-    .section-header small { font-size: 0.85rem; color: var(--muted); font-weight: 400; margin-left: 10px; }
-    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px; }
-    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
-    .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+    .section-header small { font-size: 0.8rem; color: var(--muted); font-weight: 400; }
+
+    /* KPI cards */
+    .grid-5 { display: grid; grid-template-columns: repeat(5,1fr); gap: 14px; margin-bottom: 22px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 22px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 22px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 18px; margin-bottom: 18px; }
+    @media(max-width:900px) {
+      .grid-5,.grid-4,.grid-3 { grid-template-columns: repeat(2,1fr); }
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+
     .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 20px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 18px 20px;
     }
-    .card-title {
-      font-size: 0.8rem; font-weight: 600; text-transform: uppercase;
-      letter-spacing: 0.06em; color: var(--muted); margin-bottom: 10px;
-    }
-    .card-value { font-size: 2rem; font-weight: 800; color: var(--text); }
-    .card-sub { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
-    .progress-bar {
-      height: 8px; background: var(--border); border-radius: 4px;
-      margin-top: 10px; overflow: hidden;
-    }
-    .progress-fill {
-      height: 100%; border-radius: 4px;
-      background: linear-gradient(90deg, var(--accent), var(--blue));
-      transition: width 0.6s ease;
-    }
+    .card-title { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; }
+    .card-value { font-size: 2rem; font-weight: 800; line-height: 1; }
+    .card-sub   { font-size: 0.75rem; color: var(--muted); margin-top: 5px; }
+    .card-value.green { color: var(--green); }
+    .card-value.yellow { color: var(--yellow); }
+    .card-value.red { color: var(--red); }
+    .card-value.blue { color: var(--blue); }
+    .card-value.purple { color: var(--purple); }
+
+    /* Chart cards */
     .chart-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 22px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 20px 22px;
     }
-    .chart-card h3 {
-      font-size: 1rem; font-weight: 600; margin-bottom: 16px; color: var(--text);
+    .chart-card h3 { font-size: 0.9rem; font-weight: 600; margin-bottom: 16px; color: var(--text); }
+    .chart-wrap { position: relative; height: 240px; }
+    .chart-wrap-tall { position: relative; height: 320px; }
+    .chart-wrap-xl { position: relative; height: 380px; }
+
+    /* Team progress section */
+    .team-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 14px; margin-bottom: 22px; }
+    @media(max-width:1100px) { .team-grid { grid-template-columns: repeat(2,1fr); } }
+    .team-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 16px 18px;
     }
-    .chart-wrap { position: relative; height: 280px; }
-    .chart-wrap-tall { position: relative; height: 360px; }
-    .pod-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 18px;
+    .team-name { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 12px; }
+    .prog-bar-wrap { background: var(--surface2); border-radius: 6px; height: 8px; margin-bottom: 10px; overflow: hidden; }
+    .prog-bar { height: 100%; border-radius: 6px; transition: width .4s; }
+    .prog-label { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--muted); margin-bottom: 4px; }
+    .state-pills { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; }
+    .state-pill {
+      padding: 2px 8px; border-radius: 6px; font-size: 0.68rem; font-weight: 600;
     }
-    .pod-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      overflow: hidden;
-    }
-    .pod-header {
-      padding: 14px 18px;
-      display: flex; align-items: center; justify-content: space-between;
-      border-bottom: 1px solid var(--border);
-    }
-    .pod-name {
-      font-weight: 700; font-size: 1rem;
-      display: flex; align-items: center; gap: 10px;
-    }
-    .pod-dot {
-      width: 12px; height: 12px; border-radius: 50%;
-      flex-shrink: 0;
-    }
-    .pod-pct { font-size: 1.4rem; font-weight: 800; }
-    .pod-body { padding: 16px 18px; }
-    .stat-row {
-      display: flex; justify-content: space-between;
-      font-size: 0.82rem; color: var(--muted);
-      margin-bottom: 6px;
-    }
-    .stat-row strong { color: var(--text); font-weight: 600; }
-    .mini-progress { height: 5px; background: var(--border); border-radius: 3px; margin: 6px 0 12px; overflow: hidden; }
-    .mini-fill { height: 100%; border-radius: 3px; }
-    table {
-      width: 100%; border-collapse: collapse;
-      font-size: 0.82rem;
-    }
-    th {
-      text-align: left; padding: 8px 10px;
-      background: var(--surface2);
-      color: var(--muted);
-      font-weight: 600; font-size: 0.75rem;
-      text-transform: uppercase; letter-spacing: 0.05em;
-      border-bottom: 1px solid var(--border);
-    }
-    td {
-      padding: 9px 10px;
-      border-bottom: 1px solid var(--border);
-      color: var(--text);
-      vertical-align: top;
-    }
-    tr:last-child td { border-bottom: none; }
+    .sp-done     { background:#10b98122; color: var(--green);  border:1px solid #10b98133; }
+    .sp-progress { background:#6366f122; color: var(--accent); border:1px solid #6366f133; }
+    .sp-todo     { background:#f59e0b22; color: var(--yellow); border:1px solid #f59e0b33; }
+    .sp-cancel   { background:#ef444422; color: var(--red);    border:1px solid #ef444433; }
+
+    /* Tables */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    th { background: var(--surface2); color: var(--muted); text-align: left; padding: 8px 12px; font-weight: 600; font-size: 0.72rem; text-transform: uppercase; letter-spacing: .05em; }
+    td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
     tr:hover td { background: var(--surface2); }
+    td a { color: var(--accent); text-decoration: none; }
+    td a:hover { text-decoration: underline; }
+
     .tag {
-      display: inline-block;
-      padding: 2px 8px; border-radius: 6px;
-      font-size: 0.72rem; font-weight: 600;
+      display: inline-block; padding: 2px 8px; border-radius: 6px;
+      font-size: 0.68rem; font-weight: 600;
     }
-    .tag-red    { background: #991b1b33; color: #fca5a5; }
-    .tag-yellow { background: #78350f33; color: #fcd34d; }
-    .tag-green  { background: #14532d33; color: #6ee7b7; }
-    .tag-blue   { background: #1e3a5f33; color: #93c5fd; }
-    .tag-gray   { background: #33415533; color: var(--muted); }
-    .tag-purple { background: #3730a333; color: #a5b4fc; }
-    .alert-block {
-      background: #991b1b22;
-      border: 1px solid #991b1b66;
-      border-radius: 8px; padding: 12px 16px;
-      margin-top: 12px;
+    .tag-purple  { background:#6366f122; color:#818cf8; }
+    .tag-yellow  { background:#f59e0b22; color:#fbbf24; }
+    .tag-green   { background:#10b98122; color:#34d399; }
+    .tag-blue    { background:#3b82f622; color:#60a5fa; }
+    .tag-pink    { background:#ec489922; color:#f472b6; }
+    .tag-teal    { background:#14b8a622; color:#2dd4bf; }
+    .tag-red     { background:#ef444422; color:#f87171; }
+    .tag-bug     { background:#ef444422; color:#f87171; border:1px solid #ef444433; }
+    .tag-in-progress { background:#6366f122; color:#a5b4fc; }
+
+    /* Next sprint highlighted row */
+    .next-row td { color: var(--text); }
+
+    /* divider */
+    .divider { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+
+    /* Insight boxes */
+    .insights { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 22px; }
+    @media(max-width:900px) { .insights { grid-template-columns: 1fr; } }
+    .insight-box {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 16px 18px;
     }
-    .alert-block h4 { font-size: 0.85rem; color: #fca5a5; margin-bottom: 8px; }
-    .alert-item {
-      font-size: 0.8rem; color: var(--muted);
-      padding: 4px 0;
-      border-bottom: 1px solid #ffffff10;
-    }
-    .alert-item:last-child { border-bottom: none; }
-    .alert-item strong { color: var(--text); }
-    .warn-block {
-      background: #78350f22;
-      border: 1px solid #78350f66;
-      border-radius: 8px; padding: 12px 16px;
-      margin-top: 12px;
-    }
-    .warn-block h4 { font-size: 0.85rem; color: #fcd34d; margin-bottom: 8px; }
-    .sheets-notice {
-      background: #78350f22; border: 1px solid #78350f66;
-      border-radius: 10px; padding: 16px 20px; margin: 16px 0;
-      font-size: 0.85rem; color: #fcd34d;
-    }
-    .sheets-notice code {
-      background: #ffffff15; padding: 2px 6px; border-radius: 4px;
-      font-family: monospace; font-size: 0.8rem;
-    }
-    .initiative-stage {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      margin-bottom: 14px;
-      overflow: hidden;
-    }
-    .initiative-stage-header {
-      padding: 12px 16px;
-      background: var(--surface2);
-      display: flex; justify-content: space-between; align-items: center;
-      cursor: pointer; user-select: none;
-    }
-    .initiative-stage-header h4 { font-size: 0.88rem; font-weight: 600; }
-    .count-badge {
-      background: var(--accent);
-      color: #fff;
-      border-radius: 999px;
-      padding: 2px 9px;
-      font-size: 0.72rem;
-      font-weight: 700;
-    }
-    .tabs {
-      display: flex; gap: 6px;
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 24px;
-    }
-    .tab-btn {
-      padding: 10px 20px;
-      background: none; border: none; cursor: pointer;
-      color: var(--muted); font-size: 0.88rem; font-weight: 600;
-      border-bottom: 3px solid transparent;
-      transition: all 0.15s;
-    }
-    .tab-btn.active {
-      color: var(--accent);
-      border-bottom-color: var(--accent);
-    }
-    .tab-pane { display: none; }
-    .tab-pane.active { display: block; }
-    a { color: var(--accent); text-decoration: none; }
-    a:hover { text-decoration: underline; }
-    @media (max-width: 768px) {
-      .grid-5 { grid-template-columns: repeat(2, 1fr); }
-      header { padding: 14px 16px; flex-direction: column; gap: 8px; align-items: flex-start; }
-    }
+    .insight-box h4 { font-size: 0.78rem; font-weight: 700; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing:.05em; }
+    .insight-box ul { padding-left: 14px; }
+    .insight-box li { font-size: 0.78rem; color: var(--text); margin-bottom: 4px; line-height: 1.4; }
+    .insight-box .highlight { color: var(--green); font-weight: 600; }
+    .insight-box .warn { color: var(--yellow); font-weight: 600; }
+    .insight-box .risk { color: var(--red); font-weight: 600; }
   </style>
 </head>
 <body>
+
 <header>
   <div>
-    <h1>⚡ Product Ops Report
-      <span class="badge">LIVE</span>
+    <h1>Product Ops Report
+      <span class="status-pill pill-complete">Sprint 30 — Complete</span>
+      <span class="status-pill pill-active">Sprint 31 — Active</span>
     </h1>
-    <div style="font-size:0.82rem;color:var(--muted);margin-top:4px;">Sprint: Feb 11 – Feb 24, 2026</div>
   </div>
   <div class="meta">
-    <div>Updated: Feb 21, 2026 14:17 UTC</div>
-    <div style="margin-top:3px;"><a href="#section1">Sprint Progress</a> · <a href="#section2">Sprint Planning</a></div>
+    Sprint 30: Feb 11 – Feb 24, 2026 &nbsp;|&nbsp; Sprint 31: Feb 25 – Mar 10, 2026<br/>
+    5 pods &nbsp;•&nbsp; Generated Feb 27, 2026
   </div>
 </header>
 
 <div class="container">
 
-<!-- ============================================================
-     SECTION 1: SPRINT PROGRESS
-     ============================================================ -->
-<div id="section1" class="section-header">
-  Section 1 — Sprint Progress
+<!-- ══════════════════════════════════════════════════════════
+     SECTION 1 — SPRINT 30 REVIEW
+═══════════════════════════════════════════════════════════ -->
+<div class="section-header">
+  Section 1 — Sprint 30 Review
   <small>Feb 11 – Feb 24, 2026</small>
 </div>
 
-<!-- Overall KPIs -->
-<div class="grid-5" style="margin-bottom:20px;">
+<!-- Top KPIs -->
+<div class="grid-5">
   <div class="card">
-    <div class="card-title">Tickets Done</div>
-    <div class="card-value">168<span style="font-size:1rem;color:var(--muted);">/391</span></div>
-    <div class="progress-bar"><div class="progress-fill" style="width:43.0%"></div></div>
-    <div class="card-sub">43.0% completion</div>
+    <div class="card-title">Total Issues</div>
+    <div class="card-value">389</div>
+    <div class="card-sub">Across 5 pods</div>
   </div>
   <div class="card">
-    <div class="card-title">Points Burned</div>
-    <div class="card-value">212<span style="font-size:1rem;color:var(--muted);">/545</span></div>
-    <div class="progress-bar"><div class="progress-fill" style="width:38.9%"></div></div>
-    <div class="card-sub">38.9% of story points</div>
+    <div class="card-title">Completed Issues</div>
+    <div class="card-value green">165</div>
+    <div class="card-sub">42% of all issues</div>
   </div>
   <div class="card">
-    <div class="card-title">Active Pods</div>
-    <div class="card-value">5</div>
-    <div class="card-sub">Accounting · AP · Cards · Megapod · Wallet</div>
+    <div class="card-title">Story Points Planned</div>
+    <div class="card-value blue">543</div>
+    <div class="card-sub">Total scope (final)</div>
   </div>
   <div class="card">
-    <div class="card-title">Blocked Issues</div>
-    <div class="card-value" style="color:var(--red);">0</div>
-    <div class="card-sub">Needs immediate attention</div>
+    <div class="card-title">Points Delivered</div>
+    <div class="card-value yellow">203</div>
+    <div class="card-sub">37.4% velocity</div>
   </div>
   <div class="card">
-    <div class="card-title">Stale (3+ days)</div>
-    <div class="card-value" style="color:var(--yellow);">53</div>
-    <div class="card-sub">In-progress, no recent updates</div>
+    <div class="card-title">Open Bugs</div>
+    <div class="card-value red">21</div>
+    <div class="card-sub">Across all pods</div>
   </div>
 </div>
 
-<!-- Burndown Chart -->
-<div class="chart-card" style="margin-bottom:20px;">
-  <h3>📉 Burndown — Remaining Story Points by Day</h3>
-  <div class="chart-wrap">
-    <canvas id="burndownChart"></canvas>
+<!-- Per-Team Progress Cards -->
+<div class="team-grid">
+
+  <!-- Megapod -->
+  <div class="team-card">
+    <div class="team-name" style="color:#818cf8;">Megapod</div>
+    <div class="prog-label"><span>MegaPod 30</span><span>48.2%</span></div>
+    <div class="prog-bar-wrap"><div class="prog-bar" style="width:48.2%;background:#6366f1;"></div></div>
+    <div style="font-size:0.72rem;color:var(--muted);margin-bottom:8px;">85 / 237 pts &nbsp;•&nbsp; 107 issues</div>
+    <div class="state-pills">
+      <span class="state-pill sp-done">✓ 54 Done</span>
+      <span class="state-pill sp-progress">⬡ 31 In Progress</span>
+      <span class="state-pill sp-todo">○ 18 Todo</span>
+      <span class="state-pill sp-cancel">✕ 4 Cancel</span>
+    </div>
+    <div style="font-size:0.7rem;color:var(--red);margin-top:8px;">🐛 9 bugs</div>
   </div>
+
+  <!-- Accounting -->
+  <div class="team-card">
+    <div class="team-name" style="color:#fbbf24;">Accounting</div>
+    <div class="prog-label"><span>Acct Cycle</span><span>36.1%</span></div>
+    <div class="prog-bar-wrap"><div class="prog-bar" style="width:36.1%;background:#f59e0b;"></div></div>
+    <div style="font-size:0.72rem;color:var(--muted);margin-bottom:8px;">9 / 26 pts &nbsp;•&nbsp; 42 issues</div>
+    <div class="state-pills">
+      <span class="state-pill sp-done">✓ 10 Done</span>
+      <span class="state-pill sp-progress">⬡ 13 In Progress</span>
+      <span class="state-pill sp-todo">○ 19 Todo</span>
+    </div>
+    <div style="font-size:0.7rem;color:var(--red);margin-top:8px;">🐛 3 bugs</div>
+  </div>
+
+  <!-- Wallet -->
+  <div class="team-card">
+    <div class="team-name" style="color:#f472b6;">Wallet</div>
+    <div class="prog-label"><span>WAL-4</span><span>50.7%</span></div>
+    <div class="prog-bar-wrap"><div class="prog-bar" style="width:50.7%;background:#ec4899;"></div></div>
+    <div style="font-size:0.72rem;color:var(--muted);margin-bottom:8px;">34 / 85 pts &nbsp;•&nbsp; 81 issues</div>
+    <div class="state-pills">
+      <span class="state-pill sp-done">✓ 35 Done</span>
+      <span class="state-pill sp-progress">⬡ 26 In Progress</span>
+      <span class="state-pill sp-todo">○ 19 Todo</span>
+      <span class="state-pill sp-cancel">✕ 1 Cancel</span>
+    </div>
+    <div style="font-size:0.7rem;color:var(--green);margin-top:8px;">✓ No bugs</div>
+  </div>
+
+  <!-- Cards -->
+  <div class="team-card">
+    <div class="team-name" style="color:#60a5fa;">Cards</div>
+    <div class="prog-label"><span>CARDS-4</span><span>38.2%</span></div>
+    <div class="prog-bar-wrap"><div class="prog-bar" style="width:38.2%;background:#3b82f6;"></div></div>
+    <div style="font-size:0.72rem;color:var(--muted);margin-bottom:8px;">29 / 91 pts &nbsp;•&nbsp; 71 issues</div>
+    <div class="state-pills">
+      <span class="state-pill sp-done">✓ 28 Done</span>
+      <span class="state-pill sp-progress">⬡ 12 In Progress</span>
+      <span class="state-pill sp-todo">○ 27 Todo</span>
+      <span class="state-pill sp-cancel">✕ 4 Cancel</span>
+    </div>
+    <div style="font-size:0.7rem;color:var(--red);margin-top:8px;">🐛 4 bugs</div>
+  </div>
+
+  <!-- AP -->
+  <div class="team-card">
+    <div class="team-name" style="color:#2dd4bf;">AP</div>
+    <div class="prog-label"><span>Sprint Cycle 77</span><span>46.5%</span></div>
+    <div class="prog-bar-wrap"><div class="prog-bar" style="width:46.5%;background:#14b8a6;"></div></div>
+    <div style="font-size:0.72rem;color:var(--muted);margin-bottom:8px;">46 / 104 pts &nbsp;•&nbsp; 88 issues</div>
+    <div class="state-pills">
+      <span class="state-pill sp-done">✓ 38 Done</span>
+      <span class="state-pill sp-progress">⬡ 26 In Progress</span>
+      <span class="state-pill sp-todo">○ 23 Todo</span>
+      <span class="state-pill sp-cancel">✕ 1 Cancel</span>
+    </div>
+    <div style="font-size:0.7rem;color:var(--red);margin-top:8px;">🐛 5 bugs</div>
+  </div>
+
 </div>
 
-<!-- Per-Pod Progress -->
-<div class="section-header" style="font-size:1.1rem;margin-top:28px;">Per-Pod Progress</div>
-<div class="pod-grid">
-
-  <div class="pod-card">
-    <div class="pod-header">
-      <div class="pod-name">
-        <div class="pod-dot" style="background:#6366f1;"></div>
-        Megapod
-        <span style="font-size:0.75rem;color:var(--muted);font-weight:400;">MegaPod 30 - 11Feb26 - 24Feb26 (Q1)</span>
-      </div>
-      <div class="pod-pct" style="color:#6366f1;">50.5%</div>
-    </div>
-    <div class="pod-body">
-      <div class="stat-row">
-        <span>Tickets</span>
-        <strong>54/107 done &nbsp;·&nbsp; 32 in-progress</strong>
-      </div>
-      <div class="mini-progress">
-        <div class="mini-fill" style="width:50.5%;background:#6366f1;"></div>
-      </div>
-      <div class="stat-row">
-        <span>Story Points</span>
-        <strong>85/238 burned (35.7%)</strong>
-      </div>
-      <div class="mini-progress">
-        <div class="mini-fill" style="width:35.7%;background:#6366f188;"></div>
-      </div>
-
-      <div class="warn-block">
-        <h4>⏳ 10 Stale (3+ days no update)</h4>
-        <div class="alert-item"><strong>MP-2415</strong> — WhatsApp Reimbursement Feature <span style="color:var(--muted);">(edgar.retes@tryjeeves.com)</span></div>
-        <div class="alert-item"><strong>MP-2403</strong> — Create a wireframe for new features <span style="color:var(--muted);">(Marco Casadio)</span></div>
-        <div class="alert-item"><strong>MP-2402</strong> — Card Requests <span style="color:var(--muted);">(Rafael Evangelista)</span></div>
-        <div class="alert-item" style="color:var(--muted);">+7 more...</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="pod-card">
-    <div class="pod-header">
-      <div class="pod-name">
-        <div class="pod-dot" style="background:#f59e0b;"></div>
-        Accounting
-        <span style="font-size:0.75rem;color:var(--muted);font-weight:400;">Cycle 81</span>
-      </div>
-      <div class="pod-pct" style="color:#f59e0b;">23.8%</div>
-    </div>
-    <div class="pod-body">
-      <div class="stat-row">
-        <span>Tickets</span>
-        <strong>10/42 done &nbsp;·&nbsp; 13 in-progress</strong>
-      </div>
-      <div class="mini-progress">
-        <div class="mini-fill" style="width:23.8%;background:#f59e0b;"></div>
-      </div>
-      <div class="stat-row">
-        <span>Story Points</span>
-        <strong>9/26 burned (34.6%)</strong>
-      </div>
-      <div class="mini-progress">
-        <div class="mini-fill" style="width:34.6%;background:#f59e0b88;"></div>
-      </div>
-
-      <div class="warn-block">
-        <h4>⏳ 9 Stale (3+ days no update)</h4>
-        <div class="alert-item"><strong>ACC-1387</strong> — FA: Rename Book button to "Reconcile" <span style="color:var(--muted);">(Anish Kumar)</span></div>
-        <div class="alert-item"><strong>ACC-1384</strong> — Backfill these columns from the redshift <span style="color:var(--muted);">(Narendra Kumar Sharma)</span></div>
-        <div class="alert-item"><strong>ACC-1370</strong> — FA: `[jeeves-web]` Filter ERP Supplier list by cur <span style="color:var(--muted);">(Anish Kumar)</span></div>
-        <div class="alert-item" style="color:var(--muted);">+6 more...</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="pod-card">
-    <div class="pod-header">
-      <div class="pod-name">
-        <div class="pod-dot" style="background:#10b981;"></div>
-        AP
-        <span style="font-size:0.75rem;color:var(--muted);font-weight:400;">Sprint Cycle 77</span>
-      </div>
-      <div class="pod-pct" style="color:#10b981;">46.6%</div>
-    </div>
-    <div class="pod-body">
-      <div class="stat-row">
-        <span>Tickets</span>
-        <strong>41/88 done &nbsp;·&nbsp; 25 in-progress</strong>
-      </div>
-      <div class="mini-progress">
-        <div class="mini-fill" style="width:46.6%;background:#10b981;"></div>
-      </div>
-      <div class="stat-row">
-        <span>Story Points</span>
-        <strong>55/104 burned (52.9%)</strong>
-      </div>
-      <div class="mini-progress">
-        <div class="mini-fill" style="width:52.9%;background:#10b98188;"></div>
-      </div>
-
-      <div class="warn-block">
-        <h4>⏳ 15 Stale (3+ days no update)</h4>
-        <div class="alert-item"><strong>PAY-11311</strong> — [billpay-service] [payment] [knowladge-base] <span style="color:var(--muted);">(Ashish Raj Agrawal)</span></div>
-        <div class="alert-item"><strong>PAY-11307</strong> — Create Technical Knowledge base for Payment Owned  <span style="color:var(--muted);">(Anish Kumar)</span></div>
-        <div class="alert-item"><strong>PAY-11286</strong> — Enable payouts to Saudi Arabia, Egypt, and Israel <span style="color:var(--muted);">(Ashish Raj Agrawal)</span></div>
-        <div class="alert-item" style="color:var(--muted);">+12 more...</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="pod-card">
-    <div class="pod-header">
-      <div class="pod-name">
-        <div class="pod-dot" style="background:#3b82f6;"></div>
-        Cards
-        <span style="font-size:0.75rem;color:var(--muted);font-weight:400;">CARDS - 4 - 11Feb26 - 24Feb26</span>
-      </div>
-      <div class="pod-pct" style="color:#3b82f6;">38.9%</div>
-    </div>
-    <div class="pod-body">
-      <div class="stat-row">
-        <span>Tickets</span>
-        <strong>28/72 done &nbsp;·&nbsp; 13 in-progress</strong>
-      </div>
-      <div class="mini-progress">
-        <div class="mini-fill" style="width:38.9%;background:#3b82f6;"></div>
-      </div>
-      <div class="stat-row">
-        <span>Story Points</span>
-        <strong>29/91 burned (31.9%)</strong>
-      </div>
-      <div class="mini-progress">
-        <div class="mini-fill" style="width:31.9%;background:#3b82f688;"></div>
-      </div>
-
-      <div class="warn-block">
-        <h4>⏳ 4 Stale (3+ days no update)</h4>
-        <div class="alert-item"><strong>CARDS-7912</strong> — ClaudeCode context - backend core <span style="color:var(--muted);">(Sashe Klechkovski)</span></div>
-        <div class="alert-item"><strong>CARDS-7911</strong> — EPIC: ClaudeCode context (cards) <span style="color:var(--muted);">(Sashe Klechkovski)</span></div>
-        <div class="alert-item"><strong>CARDS-7898</strong> — Release Regression from 11 Feb to 24 Feb <span style="color:var(--muted);">(Keshav Gangopalwad)</span></div>
-        <div class="alert-item" style="color:var(--muted);">+1 more...</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="pod-card">
-    <div class="pod-header">
-      <div class="pod-name">
-        <div class="pod-dot" style="background:#ec4899;"></div>
-        Wallet
-        <span style="font-size:0.75rem;color:var(--muted);font-weight:400;">WAL - 4 - 11Feb26 - 24Feb26</span>
-      </div>
-      <div class="pod-pct" style="color:#ec4899;">42.7%</div>
-    </div>
-    <div class="pod-body">
-      <div class="stat-row">
-        <span>Tickets</span>
-        <strong>35/82 done &nbsp;·&nbsp; 26 in-progress</strong>
-      </div>
-      <div class="mini-progress">
-        <div class="mini-fill" style="width:42.7%;background:#ec4899;"></div>
-      </div>
-      <div class="stat-row">
-        <span>Story Points</span>
-        <strong>34/86 burned (39.5%)</strong>
-      </div>
-      <div class="mini-progress">
-        <div class="mini-fill" style="width:39.5%;background:#ec489988;"></div>
-      </div>
-
-      <div class="warn-block">
-        <h4>⏳ 15 Stale (3+ days no update)</h4>
-        <div class="alert-item"><strong>WAL-4262</strong> — product-account-service - Fix code vulnerabilities <span style="color:var(--muted);">(Jaidev (Bot))</span></div>
-        <div class="alert-item"><strong>WAL-4239</strong> — Sonarcube - credit-statements-service - Phase 2 <span style="color:var(--muted);">(Andrea Maroni)</span></div>
-        <div class="alert-item"><strong>WAL-4159</strong> — Sync expired custom pricing agreements to HubSpot  <span style="color:var(--muted);">(Daniel Valdez)</span></div>
-        <div class="alert-item" style="color:var(--muted);">+12 more...</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="grid-2" style="margin-top:20px;">
-  <div class="chart-card">
-    <h3>📊 Tickets: Completed vs. Total per Pod</h3>
-    <div class="chart-wrap">
-      <canvas id="podTicketsChart"></canvas>
-    </div>
-  </div>
-  <div class="chart-card">
-    <h3>🔥 Story Points: Burned vs. Total per Pod</h3>
-    <div class="chart-wrap">
-      <canvas id="podPointsChart"></canvas>
-    </div>
-  </div>
-</div>
-
-<div class="section-header" style="font-size:1.05rem;margin-top:28px;">⚠️ Attention Required</div>
+<!-- Charts Row: Burndown + State Breakdown -->
 <div class="grid-2">
-
   <div class="chart-card">
-    <h3>⏳ Stale In-Progress (3+ days)</h3>
+    <h3>📉 Sprint Burndown — Remaining Points by Team</h3>
+    <div class="chart-wrap-xl"><canvas id="burndownChart"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <h3>📊 Issue State Breakdown by Pod</h3>
+    <div class="chart-wrap-xl"><canvas id="stateChart"></canvas></div>
+  </div>
+</div>
+
+<!-- In-Progress Issues -->
+<div class="chart-card" style="margin-top:18px;">
+  <h3>🔄 Currently In Progress (Top Issues per Pod)</h3>
+  <div class="table-wrap">
     <table>
-      <thead><tr><th>ID</th><th>Title</th><th>Pod</th><th>Last Update</th></tr></thead>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Title</th>
+          <th>Pod</th>
+          <th>Assignee</th>
+          <th>Points</th>
+        </tr>
+      </thead>
       <tbody>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/MP-2415/whatsapp-reimbursement-feature" target="_blank">MP-2415</a></td>
-          <td>WhatsApp Reimbursement Feature</td>
-          <td><span class="tag tag-yellow">Megapod</span></td>
-          <td>2026-02-17</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/MP-2403/create-a-wireframe-for-new-features" target="_blank">MP-2403</a></td>
-          <td>Create a wireframe for new features</td>
-          <td><span class="tag tag-yellow">Megapod</span></td>
-          <td>2026-02-12</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/MP-2402/card-requests" target="_blank">MP-2402</a></td>
-          <td>Card Requests</td>
-          <td><span class="tag tag-yellow">Megapod</span></td>
-          <td>2026-02-17</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/MP-2383/spike-prepare-an-architectural-doc-about-the-current-shape" target="_blank">MP-2383</a></td>
-          <td>[SPIKE] prepare an architectural doc about the current shape</td>
-          <td><span class="tag tag-yellow">Megapod</span></td>
-          <td>2026-02-11</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/MP-2376/avoid-duplication-of-generated-invoices" target="_blank">MP-2376</a></td>
-          <td>Avoid duplication of generated invoices</td>
-          <td><span class="tag tag-yellow">Megapod</span></td>
-          <td>2026-02-11</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/MP-2367/add-reimbursements-feature-to-mobile-app" target="_blank">MP-2367</a></td>
-          <td>Add Reimbursements Feature to Mobile App</td>
-          <td><span class="tag tag-yellow">Megapod</span></td>
-          <td>2026-02-11</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/MP-2241/mexico-syntage-re-connection-prompt-in-app-and-email" target="_blank">MP-2241</a></td>
-          <td>[Mexico] Syntage Re-Connection Prompt (In-App & Email)</td>
-          <td><span class="tag tag-yellow">Megapod</span></td>
-          <td>2026-02-11</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/MP-2030/mobile-app-receipt-functionality-not-working-private-equity" target="_blank">MP-2030</a></td>
-          <td>Mobile App receipt functionality not working + Private Equit</td>
-          <td><span class="tag tag-yellow">Megapod</span></td>
-          <td>2026-02-12</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/MP-1705/implement-push-provisioning" target="_blank">MP-1705</a></td>
-          <td>Implement Push Provisioning</td>
-          <td><span class="tag tag-yellow">Megapod</span></td>
-          <td>2026-02-17</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/MP-67/ftu-niva-pre-fill-application-mx-br" target="_blank">MP-67</a></td>
-          <td>FTU: Niva - Pre-Fill Application (MX + BR)</td>
-          <td><span class="tag tag-yellow">Megapod</span></td>
-          <td>2026-02-06</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/ACC-1387/fa-rename-book-button-to-reconcile" target="_blank">ACC-1387</a></td>
-          <td>FA: Rename Book button to "Reconcile"</td>
-          <td><span class="tag tag-yellow">Accounting</span></td>
-          <td>2026-02-10</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/ACC-1384/backfill-these-columns-from-the-redshift" target="_blank">ACC-1384</a></td>
-          <td>Backfill these columns from the redshift</td>
-          <td><span class="tag tag-yellow">Accounting</span></td>
-          <td>2026-02-17</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/ACC-1370/fa-jeeves-web-filter-erp-supplier-list-by-currency-to-remove-invalid" target="_blank">ACC-1370</a></td>
-          <td>FA: `[jeeves-web]` Filter ERP Supplier list by currency to r</td>
-          <td><span class="tag tag-yellow">Accounting</span></td>
-          <td>2026-02-11</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/ACC-1368/fa-bills-inbox-ui-incorrectly-shows-connected-for-incomplete-erp-setup" target="_blank">ACC-1368</a></td>
-          <td>FA: Bills Inbox UI incorrectly shows "Connected" for incompl</td>
-          <td><span class="tag tag-yellow">Accounting</span></td>
-          <td>2026-02-16</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/ACC-1355/8-p1-when-i-create-a-xero-bill-the-bill-number-i-input-is-blank-and" target="_blank">ACC-1355</a></td>
-          <td>8. P1 - When I create a Xero bill, the Bill Number I input i</td>
-          <td><span class="tag tag-yellow">Accounting</span></td>
-          <td>2026-02-10</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/ACC-1341/30-successful-sync-status-should-be-booked" target="_blank">ACC-1341</a></td>
-          <td>30. Successful Sync status should be "Booked"</td>
-          <td><span class="tag tag-yellow">Accounting</span></td>
-          <td>2026-02-10</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/ACC-1317/5-marking-as-pay-outside-of-jeeves-has-the-ui-status-as-paid-undo-paid" target="_blank">ACC-1317</a></td>
-          <td>5. Marking as "Pay outside of Jeeves" has the UI status as P</td>
-          <td><span class="tag tag-yellow">Accounting</span></td>
-          <td>2026-02-16</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/ACC-1307/fa-bills-inbox-map-erp-supplier-to-jeeves-supplier" target="_blank">ACC-1307</a></td>
-          <td>FA: Bills Inbox - Map ERP Supplier to Jeeves Supplier</td>
-          <td><span class="tag tag-yellow">Accounting</span></td>
-          <td>2026-02-12</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/ACC-1306/fa-bills-inbox-autofill-erp-supplier-on-vendor-creation" target="_blank">ACC-1306</a></td>
-          <td>FA: Bills Inbox - Autofill ERP Supplier on Vendor Creation</td>
-          <td><span class="tag tag-yellow">Accounting</span></td>
-          <td>2026-02-10</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/PAY-11311/billpay-service-payment-knowladge-base" target="_blank">PAY-11311</a></td>
-          <td>[billpay-service] [payment] [knowladge-base]</td>
-          <td><span class="tag tag-yellow">AP</span></td>
-          <td>2026-02-17</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/PAY-11307/create-technical-knowledge-base-for-payment-owned-flows" target="_blank">PAY-11307</a></td>
-          <td>Create Technical Knowledge base for Payment Owned flows</td>
-          <td><span class="tag tag-yellow">AP</span></td>
-          <td>2026-02-16</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/PAY-11286/enable-payouts-to-saudi-arabia-egypt-and-israel" target="_blank">PAY-11286</a></td>
-          <td>Enable payouts to Saudi Arabia, Egypt, and Israel</td>
-          <td><span class="tag tag-yellow">AP</span></td>
-          <td>2026-02-11</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/PAY-11276/bridge-dlq-handling" target="_blank">PAY-11276</a></td>
-          <td>Bridge DLQ handling</td>
-          <td><span class="tag tag-yellow">AP</span></td>
-          <td>2026-02-17</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/PAY-11270/evaluate-email-forwarding-setup-for-invoice-ingestion-aptryjeevescom" target="_blank">PAY-11270</a></td>
-          <td>Evaluate Email Forwarding Setup for Invoice Ingestion (ap.tr</td>
-          <td><span class="tag tag-yellow">AP</span></td>
-          <td>2026-02-13</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/PAY-11262/perform-payout-testing-for-the-below-corridors-mentioned" target="_blank">PAY-11262</a></td>
-          <td>Perform Payout testing for the below corridors mentioned.</td>
-          <td><span class="tag tag-yellow">AP</span></td>
-          <td>2026-02-11</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/PAY-11242/address-payment-failures-due-to-deactivated-bridge-external-account" target="_blank">PAY-11242</a></td>
-          <td>Address payment failures due to deactivated Bridge external </td>
-          <td><span class="tag tag-yellow">AP</span></td>
-          <td>2026-01-30</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/PAY-11223/be-wallet-billpay-integration-and-e2e-testing-for-provider-error" target="_blank">PAY-11223</a></td>
-          <td>[BE] Wallet-Billpay Integration & E2E Testing for Provider E</td>
-          <td><span class="tag tag-yellow">AP</span></td>
-          <td>2026-02-12</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/PAY-11158/backend-pts-add-raw-error-capture-for-routefusion-and-stp" target="_blank">PAY-11158</a></td>
-          <td>[backend, pts] Add raw error capture for Routefusion and STP</td>
-          <td><span class="tag tag-yellow">AP</span></td>
-          <td>2026-02-03</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/PAY-11039/ashish-besides-these-two-payouts-were-now-facing-a-mismatch-balance" target="_blank">PAY-11039</a></td>
-          <td>@ashish besides these two payouts, we're now facing a mismat</td>
-          <td><span class="tag tag-yellow">AP</span></td>
-          <td>2026-01-01</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/PAY-10747/errors-invoice-upload-automation-on-dev-15-and-qa-envs" target="_blank">PAY-10747</a></td>
-          <td>Errors: Invoice upload Automation on dev-15 and QA env's.</td>
-          <td><span class="tag tag-yellow">AP</span></td>
-          <td>2025-12-22</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/PAY-10274/check-status-of-tax-amount-reversal-and-ledger-adjustments" target="_blank">PAY-10274</a></td>
-          <td>Check status of tax amount reversal and ledger adjustments</td>
-          <td><span class="tag tag-yellow">AP</span></td>
-          <td>2025-07-23</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/PAY-10254/implement-jeeves-internal-error-mapping-layer" target="_blank">PAY-10254</a></td>
-          <td>Implement Jeeves Internal Error Mapping Layer</td>
-          <td><span class="tag tag-yellow">AP</span></td>
-          <td>2026-02-16</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/PAY-10142/backend-refactoring-and-prep-work-for-partner-error-mapping" target="_blank">PAY-10142</a></td>
-          <td>Backend Refactoring & Prep Work for Partner Error Mapping</td>
-          <td><span class="tag tag-yellow">AP</span></td>
-          <td>2026-01-27</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/PAY-10041/data-corrections-in-the-wallet-ledger-pending-sf-cards-transaction" target="_blank">PAY-10041</a></td>
-          <td>Data corrections in the wallet ledger: pending sf cards tran</td>
-          <td><span class="tag tag-yellow">AP</span></td>
-          <td>2026-01-01</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/CARDS-7912/claudecode-context-backend-core" target="_blank">CARDS-7912</a></td>
-          <td>ClaudeCode context - backend core</td>
-          <td><span class="tag tag-yellow">Cards</span></td>
-          <td>2026-02-16</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/CARDS-7911/epic-claudecode-context-cards" target="_blank">CARDS-7911</a></td>
-          <td>EPIC: ClaudeCode context (cards)</td>
-          <td><span class="tag tag-yellow">Cards</span></td>
-          <td>2026-02-16</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/CARDS-7898/release-regression-from-11-feb-to-24-feb" target="_blank">CARDS-7898</a></td>
-          <td>Release Regression from 11 Feb to 24 Feb</td>
-          <td><span class="tag tag-yellow">Cards</span></td>
-          <td>2026-02-13</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/CARDS-7879/paymentology-settlement-received-after-full-deduct-reversal-event" target="_blank">CARDS-7879</a></td>
-          <td>Paymentology: Settlement received after full deduct reversal</td>
-          <td><span class="tag tag-yellow">Cards</span></td>
-          <td>2026-02-06</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/WAL-4262/product-account-service-fix-code-vulnerabilities" target="_blank">WAL-4262</a></td>
-          <td>product-account-service - Fix code vulnerabilities</td>
-          <td><span class="tag tag-yellow">Wallet</span></td>
-          <td>2026-02-12</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/WAL-4239/sonarcube-credit-statements-service-phase-2" target="_blank">WAL-4239</a></td>
-          <td>Sonarcube - credit-statements-service - Phase 2</td>
-          <td><span class="tag tag-yellow">Wallet</span></td>
-          <td>2026-02-06</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/WAL-4159/sync-expired-custom-pricing-agreements-to-hubspot-dec-31-3000" target="_blank">WAL-4159</a></td>
-          <td>Sync expired custom pricing agreements to HubSpot (Dec 31, 3</td>
-          <td><span class="tag tag-yellow">Wallet</span></td>
-          <td>2026-01-26</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/WAL-4086/add-param-support-to-get-all-self-funded-accounts-api-for-transaction" target="_blank">WAL-4086</a></td>
-          <td>add Param support to get all self funded accounts API for tr</td>
-          <td><span class="tag tag-yellow">Wallet</span></td>
-          <td>2026-01-09</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/WAL-4057/epic-db-performance-issues" target="_blank">WAL-4057</a></td>
-          <td>Epic: DB Performance Issues</td>
-          <td><span class="tag tag-yellow">Wallet</span></td>
-          <td>2026-02-11</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/WAL-3887/show-dynamic-due-date-in-cms" target="_blank">WAL-3887</a></td>
-          <td>Show dynamic due date in CMS</td>
-          <td><span class="tag tag-yellow">Wallet</span></td>
-          <td>2026-01-01</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/WAL-3756/partial-updates-during-aws-sqs-outage" target="_blank">WAL-3756</a></td>
-          <td>Partial updates during AWS SQS outage</td>
-          <td><span class="tag tag-yellow">Wallet</span></td>
-          <td>2026-01-01</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/WAL-3696/utv-create-makefile-for-utv-processor-repo" target="_blank">WAL-3696</a></td>
-          <td>UTV : create makefile for UTV processor repo</td>
-          <td><span class="tag tag-yellow">Wallet</span></td>
-          <td>2026-01-23</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/WAL-3557/createupdate-the-boleto-document-for-this-enhancement" target="_blank">WAL-3557</a></td>
-          <td>Create/Update the Boleto document for this enhancement</td>
-          <td><span class="tag tag-yellow">Wallet</span></td>
-          <td>2025-11-10</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/WAL-3455/2025-06-30-events-mapping" target="_blank">WAL-3455</a></td>
-          <td>2025-06-30 events mapping</td>
-          <td><span class="tag tag-yellow">Wallet</span></td>
-          <td>2025-09-12</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/WAL-3454/map-webhook-events-with-api-version" target="_blank">WAL-3454</a></td>
-          <td>Map webhook events with API version</td>
-          <td><span class="tag tag-yellow">Wallet</span></td>
-          <td>2025-09-09</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/WAL-3451/handle-webhook-events-from-2025-06-30" target="_blank">WAL-3451</a></td>
-          <td>Handle webhook events from 2025-06-30</td>
-          <td><span class="tag tag-yellow">Wallet</span></td>
-          <td>2025-09-12</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/WAL-3406/monthly-cashback-notification-email" target="_blank">WAL-3406</a></td>
-          <td>Monthly Cashback Notification Email</td>
-          <td><span class="tag tag-yellow">Wallet</span></td>
-          <td>2026-01-07</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/WAL-3208/awx-investigate-and-reconcile-product-account-balances-for-org-9467" target="_blank">WAL-3208</a></td>
-          <td>AWX - investigate and reconcile product account balances for</td>
-          <td><span class="tag tag-yellow">Wallet</span></td>
-          <td>2025-10-23</td>
-        </tr>
-        <tr>
-          <td><a href="https://linear.app/jeeves/issue/WAL-2429/sonarcube-credit-statements-service" target="_blank">WAL-2429</a></td>
-          <td>Sonarcube - credit-statements-service</td>
-          <td><span class="tag tag-yellow">Wallet</span></td>
-          <td>2026-02-06</td>
-        </tr>
-      </tbody></table></div>
+        <tr><td><a href="https://linear.app/jeeves/issue/MP-2454" target="_blank">MP-2454</a></td><td>TPA: language conversion don't work as expected</td><td><span class="tag tag-purple">Megapod</span></td><td>Giacomo Berdondini</td><td>2</td></tr>
+        <tr><td><a href="https://linear.app/jeeves/issue/MP-2430" target="_blank">MP-2430</a></td><td>TPA: adapt the UI to the presence of</td><td><span class="tag tag-purple">Megapod</span></td><td>Eduard</td><td>1</td></tr>
+        <tr><td><a href="https://linear.app/jeeves/issue/MP-2427" target="_blank">MP-2427</a></td><td>TPA: handle budget generation on travel request</td><td><span class="tag tag-purple">Megapod</span></td><td>Eduard</td><td>2</td></tr>
+        <tr><td><a href="https://linear.app/jeeves/issue/MP-2424" target="_blank">MP-2424</a></td><td>Create Form Components and Validators in Jeeves Mobile</td><td><span class="tag tag-purple">Megapod</span></td><td>Rafael Evangelista</td><td>3</td></tr>
+        <tr><td><a href="https://linear.app/jeeves/issue/MP-2415" target="_blank">MP-2415</a></td><td>WhatsApp Reimbursement Feature</td><td><span class="tag tag-purple">Megapod</span></td><td>Edgar Retes</td><td>3</td></tr>
+        <tr><td><a href="https://linear.app/jeeves/issue/ACC-1398" target="_blank">ACC-1398</a></td><td>Add indexes for jeeves.transactions</td><td><span class="tag tag-yellow">Accounting</span></td><td>Narendra Sharma</td><td>1</td></tr>
+        <tr><td><a href="https://linear.app/jeeves/issue/ACC-1384" target="_blank">ACC-1384</a></td><td>Backfill columns from Redshift</td><td><span class="tag tag-yellow">Accounting</span></td><td>Narendra Sharma</td><td>2</td></tr>
+        <tr><td><a href="https://linear.app/jeeves/issue/ACC-1378" target="_blank">ACC-1378</a></td><td>FA: [Bug] Date custom filter is not working</td><td><span class="tag tag-yellow">Accounting</span></td><td>Apurva Singh</td><td>—</td></tr>
+        <tr><td><a href="https://linear.app/jeeves/issue/WAL-4302" target="_blank">WAL-4302</a></td><td>Send proof of deposits email only to Stablecoin customers</td><td><span class="tag tag-pink">Wallet</span></td><td>Andrea Maroni</td><td>1</td></tr>
+        <tr><td><a href="https://linear.app/jeeves/issue/WAL-4299" target="_blank">WAL-4299</a></td><td>Need to investigate why TB is wrong for 23928 org</td><td><span class="tag tag-pink">Wallet</span></td><td>Ashwin Yadav</td><td>1</td></tr>
+        <tr><td><a href="https://linear.app/jeeves/issue/WAL-4276" target="_blank">WAL-4276</a></td><td>Pending balance visualization error OrgID 23928</td><td><span class="tag tag-pink">Wallet</span></td><td>Narendra Sharma</td><td>1</td></tr>
+        <tr><td><a href="https://linear.app/jeeves/issue/CARDS-7923" target="_blank">CARDS-7923</a></td><td>CMS: Calendar Configuration UI for multi-org card routing</td><td><span class="tag tag-blue">Cards</span></td><td>Diego Alvarez</td><td>3</td></tr>
+        <tr><td><a href="https://linear.app/jeeves/issue/CARDS-7919" target="_blank">CARDS-7919</a></td><td>Create endpoint to list all calendar configurations</td><td><span class="tag tag-blue">Cards</span></td><td>Diego Alvarez</td><td>2</td></tr>
+        <tr><td><a href="https://linear.app/jeeves/issue/CARDS-7918" target="_blank">CARDS-7918</a></td><td>ClaudeCode context - pricing engine</td><td><span class="tag tag-blue">Cards</span></td><td>Daniel Valdez</td><td>2</td></tr>
+        <tr><td><a href="https://linear.app/jeeves/issue/PAY-11323" target="_blank">PAY-11323</a></td><td>Next-Gen Invoice Forwarding (Per-Entity Inboxes)</td><td><span class="tag tag-teal">AP</span></td><td>Luis Sena</td><td>4</td></tr>
+        <tr><td><a href="https://linear.app/jeeves/issue/PAY-11308" target="_blank">PAY-11308</a></td><td>More cases of incoming payments stuck in 'unsettled' state</td><td><span class="tag tag-teal">AP</span></td><td>Jayesh Prajapati</td><td>2</td></tr>
+        <tr><td><a href="https://linear.app/jeeves/issue/PAY-11312" target="_blank">PAY-11312</a></td><td>Payment-OnCall 16/02/2026 to 22/02/2026</td><td><span class="tag tag-teal">AP</span></td><td>Ashish Raj Agrawal</td><td>2</td></tr>
+      </tbody>
+    </table>
+  </div>
 </div>
 
-<div id="section2" class="section-header" style="margin-top:44px;">
-  Section 2 — Sprint Planning (Upcoming Sprint)
-  <small>Feb 25 – Mar 10, 2026</small>
+<!-- Insights -->
+<div class="insights" style="margin-top:18px;">
+  <div class="insight-box">
+    <h4>Top Performers</h4>
+    <ul>
+      <li><span class="highlight">Wallet</span> — highest completion rate at <span class="highlight">50.7%</span></li>
+      <li><span class="highlight">AP</span> — 38 issues completed, most completions by issue count</li>
+      <li><span class="highlight">Megapod</span> — Rafael Evangelista with 15 issues assigned</li>
+    </ul>
+  </div>
+  <div class="insight-box">
+    <h4>Risks & Flags</h4>
+    <ul>
+      <li><span class="risk">Accounting</span> — lowest velocity at 36.1%, heavy unstarted backlog (19 issues)</li>
+      <li><span class="warn">Cards</span> — 27 unstarted issues, scope grew from 54→86 pts during sprint</li>
+      <li><span class="risk">Megapod</span> — 9 bugs open; scope expanded from 186→235 pts</li>
+    </ul>
+  </div>
+  <div class="insight-box">
+    <h4>Scope Creep Summary</h4>
+    <ul>
+      <li>Megapod: +49 pts (186→235)</li>
+      <li>AP: +38 pts (90→128)</li>
+      <li>Cards: +32 pts (54→86)</li>
+      <li>Wallet: +26 pts (70→96)</li>
+      <li>Accounting: +10 pts (43→53)</li>
+    </ul>
+  </div>
 </div>
 
-<div class="grid-3" style="margin-bottom:20px;">
+<hr class="divider"/>
+
+<!-- ══════════════════════════════════════════════════════════
+     SECTION 2 — SPRINT 31 PLANNING (ACTIVE)
+═══════════════════════════════════════════════════════════ -->
+<div class="section-header">
+  Section 2 — Sprint 31 Planning
+  <small>Feb 25 – Mar 10, 2026 &nbsp;•&nbsp; <span style="color:var(--green);">Active Now</span></small>
+</div>
+
+<!-- Sprint 31 KPIs -->
+<div class="grid-4">
   <div class="card">
-    <div class="card-title">Next Sprint Tickets</div>
+    <div class="card-title">Total Tickets</div>
     <div class="card-value">51</div>
     <div class="card-sub">Across 5 pods</div>
   </div>
   <div class="card">
-    <div class="card-title">Next Sprint Story Points</div>
-    <div class="card-value">88</div>
+    <div class="card-title">Story Points Planned</div>
+    <div class="card-value blue">88</div>
     <div class="card-sub">Total planned capacity</div>
   </div>
   <div class="card">
+    <div class="card-title">In Progress (Day 3)</div>
+    <div class="card-value yellow">11</div>
+    <div class="card-sub">Megapod started issues</div>
+  </div>
+  <div class="card">
     <div class="card-title">Heaviest Ticket</div>
-    <div class="card-value">8 pts</div>
-    <div class="card-sub">[SECURITY] new MFA implementation with code render</div>
+    <div class="card-value purple">8 pts</div>
+    <div class="card-sub">[SECURITY] MFA implementation</div>
   </div>
 </div>
 
-<div class="grid-2">
+<!-- Per-team next sprint -->
+<div class="grid-2" style="margin-bottom:18px;">
   <div class="chart-card">
-    <h3>📋 Ticket Count per Pod (Next Sprint)</h3>
+    <h3>📋 Ticket Count per Pod — Sprint 31</h3>
     <div class="chart-wrap"><canvas id="nextPodChart"></canvas></div>
   </div>
   <div class="chart-card">
-    <h3>👤 Story Points per Engineer (Next Sprint)</h3>
+    <h3>👤 Story Points per Engineer — Sprint 31</h3>
     <div class="chart-wrap-tall"><canvas id="engPointsChart"></canvas></div>
   </div>
 </div>
 
-<div class="chart-card" style="margin-top:18px;">
-  <h3>📈 Pareto Chart — Tickets Ranked by Story Points (Top 25)</h3>
-  <div class="chart-wrap-tall"><canvas id="paretoChart"></canvas></div>
+<!-- Pareto / Top tickets -->
+<div class="chart-card" style="margin-bottom:18px;">
+  <h3>📈 Top 20 Tickets by Story Points — Sprint 31</h3>
+  <div class="chart-wrap-xl"><canvas id="paretoChart"></canvas></div>
 </div>
 
-<div class="section-header" style="font-size:1.05rem;margin-top:36px;">
-  🗂️ Initiatives Not Yet Ready for Engineering
-</div>
-
-<div class="sheets-notice">
-  <strong>⚠️ Google Sheet Access Required</strong><br/>
-  The Google Sheet is not yet accessible. To fix this:<br/>
-  1. Share the Google Sheet with the service account: <code>product-ops-agent@product-ops-agent.iam.gserviceaccount.com</code> (Viewer access)<br/>
-  2. Or set the sheet to "Anyone with the link can view" and ensure GOOGLE_API_KEY has access<br/>
-  3. Re-run the daily pipeline after granting access.<br/><br/>
-  The rest of the report (Linear data) is fully functional.
+<!-- Sprint 31 issue table -->
+<div class="chart-card">
+  <h3>🗂️ Sprint 31 — All Issues (Ranked by Priority)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Title</th>
+          <th>Pod</th>
+          <th>Assignee</th>
+          <th>State</th>
+          <th>Pts</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><a href="https://linear.app/jeeves/issue/MP-2064" target="_blank">MP-2064</a></td><td>[SECURITY] new MFA implementation with code rendered on screen</td><td><span class="tag tag-purple">Megapod</span></td><td>Anish Bhatt</td><td><span class="tag tag-in-progress">In Progress</span></td><td>8</td></tr>
+        <tr><td><a href="https://linear.app/jeeves/issue/MP-910" target="_blank">MP-910</a></td><td>FTU: Doc/Field Removals</td><td><span class="tag tag-purple">Megapod</span></td><td>Anish Bhatt</td><td><span class="tag tag-in-progress">In Progress</span></td><td>8</td></tr>
+        <tr><td><a href="https://linear.app/jeeves/issue/MP-319" target="_blank">MP-319</a></td><td>[TechR] - notification service - review templates</td><td><span class="tag tag-purple">Megapod</span></td><td>Claudio Comandini</td><td><span class="tag tag-in-progress">In Progress</span></td><td>8</td></tr>
+        <tr><td><a href="https://linear.app/jeeves/issue/MP-2339" target="_blank">MP-2339</a></td><td>Proactive WhatsApp Message After Card Transaction</td><td><span class="tag tag-purple">Megapod</span></td><td>Claudio Comandini</td><td><span class="tag tag-in-progress">In Progress</span></td><td>5</td></tr>
+        <tr><td><a href="https://linear.app/jeeves/issue/CARDS-7324" target="_blank">CARDS-7324</a></td><td>Digital Wallets LATAM - Token LifeCycle integration</td><td><span class="tag tag-blue">Cards</span></td><td>Dinesh Yadav</td><td><span class="sp-todo state-pill">Todo</span></td><td>3</td></tr>
+        <tr><td><a href="https://linear.app/jeeves/issue/CARDS-6912" target="_blank">CARDS-6912</a></td><td>Settlement Issue for Marqeta under capture - reversal</td><td><span class="tag tag-blue">Cards</span></td><td>Dinesh Yadav</td><td><span class="sp-todo state-pill">Todo</span></td><td>3</td></tr>
+        <tr><td><a href="https://linear.app/jeeves/issue/MP-2432" target="_blank">MP-2432</a></td><td>Update KAM Ownership in CMS</td><td><span class="tag tag-purple">Megapod</span></td><td>Eduard</td><td><span class="sp-todo state-pill">Todo</span></td><td>3</td></tr>
+        <tr><td><a href="https://linear.app/jeeves/issue/MP-2431" target="_blank">MP-2431</a></td><td>Switch onboarding flow default to AWX for NY jurisdiction</td><td><span class="tag tag-purple">Megapod</span></td><td>Edin</td><td><span class="sp-todo state-pill">Todo</span></td><td>3</td></tr>
+        <tr><td><a href="https://linear.app/jeeves/issue/MP-2407" target="_blank">MP-2407</a></td><td>Pluggy: Balance mismatch on bank with AutoInvestment transactions</td><td><span class="tag tag-purple">Megapod</span></td><td>Luca Venturini</td><td><span class="sp-todo state-pill">Todo</span></td><td>3</td></tr>
+        <tr><td><a href="https://linear.app/jeeves/issue/MP-2392" target="_blank">MP-2392</a></td><td>Inconsistent trip-bound logic: Out of Policy vs In Policy</td><td><span class="tag tag-purple">Megapod</span></td><td>Giacomo Berdondini</td><td><span class="sp-todo state-pill">Todo</span></td><td>3</td></tr>
+        <tr><td><a href="https://linear.app/jeeves/issue/MP-2390" target="_blank">MP-2390</a></td><td>AI Policy Enforcer incorrectly classifies Uber Eats transaction</td><td><span class="tag tag-purple">Megapod</span></td><td>Giacomo Berdondini</td><td><span class="sp-todo state-pill">Todo</span></td><td>3</td></tr>
+        <tr><td><a href="https://linear.app/jeeves/issue/MP-2362" target="_blank">MP-2362</a></td><td>Reimbursements: glitch on amount conversion</td><td><span class="tag tag-purple">Megapod</span></td><td>Eduard</td><td><span class="sp-todo state-pill">Todo</span></td><td>3</td></tr>
+        <tr><td><a href="https://linear.app/jeeves/issue/MP-1530" target="_blank">MP-1530</a></td><td>Card creation flow UI</td><td><span class="tag tag-purple">Megapod</span></td><td>Anish Bhatt</td><td><span class="tag tag-in-progress">In Progress</span></td><td>3</td></tr>
+        <tr><td><a href="https://linear.app/jeeves/issue/MP-2422" target="_blank">MP-2422</a></td><td>ONB: nux-onboarding flow migrations</td><td><span class="tag tag-purple">Megapod</span></td><td>Edin</td><td><span class="sp-todo state-pill">Todo</span></td><td>2</td></tr>
+        <tr><td><a href="https://linear.app/jeeves/issue/MP-2421" target="_blank">MP-2421</a></td><td>ONB: Allow admin to initiate fiat currency application from CMS</td><td><span class="tag tag-purple">Megapod</span></td><td>Edin</td><td><span class="sp-todo state-pill">Todo</span></td><td>2</td></tr>
+        <tr><td><a href="https://linear.app/jeeves/issue/MP-2394" target="_blank">MP-2394</a></td><td>On bridge confirmation of wallet activated send request</td><td><span class="tag tag-purple">Megapod</span></td><td>Edin</td><td><span class="sp-todo state-pill">Todo</span></td><td>2</td></tr>
+        <tr><td><a href="https://linear.app/jeeves/issue/MP-2391" target="_blank">MP-2391</a></td><td>AI Policy Enforcer misclassifies Airbnb as Transportation</td><td><span class="tag tag-purple">Megapod</span></td><td>Giacomo Berdondini</td><td><span class="sp-todo state-pill">Todo</span></td><td>2</td></tr>
+        <tr><td><a href="https://linear.app/jeeves/issue/MP-2351" target="_blank">MP-2351</a></td><td>RegCheq: REDECO API superuser creation</td><td><span class="tag tag-purple">Megapod</span></td><td>Anish Bhatt</td><td><span class="tag tag-in-progress">In Progress</span></td><td>2</td></tr>
+        <tr><td><a href="https://linear.app/jeeves/issue/CARDS-7904" target="_blank">CARDS-7904</a></td><td>VCN - Pricing Engine UI</td><td><span class="tag tag-blue">Cards</span></td><td>Dinesh Yadav</td><td><span class="sp-todo state-pill">Todo</span></td><td>2</td></tr>
+        <tr><td><a href="https://linear.app/jeeves/issue/CARDS-7897" target="_blank">CARDS-7897</a></td><td>VCN - Backend Implementation</td><td><span class="tag tag-blue">Cards</span></td><td>Dinesh Yadav</td><td><span class="sp-todo state-pill">Todo</span></td><td>2</td></tr>
+      </tbody>
+    </table>
+  </div>
 </div>
 
 </div><!-- .container -->
@@ -877,14 +466,51 @@
 Chart.defaults.color = '#94a3b8';
 Chart.defaults.borderColor = '#334155';
 
-// ── Burndown Chart ──────────────────────────────
+// ── Burndown Chart ──────────────────────────────────────────
 const burndownCtx = document.getElementById('burndownChart');
 if (burndownCtx) {
   new Chart(burndownCtx, {
     type: 'line',
     data: {
-      labels: ["Feb 10", "Feb 11", "Feb 12", "Feb 13", "Feb 14", "Feb 15", "Feb 16", "Feb 17", "Feb 18", "Feb 19"],
-      datasets: [{"label": "Ideal", "data": [545.0, 484.4, 423.9, 363.3, 302.8, 242.2, 181.7, 121.1, 60.6, 0], "borderColor": "#475569", "borderDash": [6, 4], "borderWidth": 2, "pointRadius": 0, "tension": 0, "fill": false}, {"label": "Megapod", "data": [182, 183, 170, 168, 168, 167, 172, 159, 149, 148], "borderColor": "#6366f1", "backgroundColor": "#6366f122", "tension": 0.3, "fill": false, "borderWidth": 2}, {"label": "Accounting", "data": [37, 37, 37, 37, 37, 42, 42, 37, 37, 38], "borderColor": "#f59e0b", "backgroundColor": "#f59e0b22", "tension": 0.3, "fill": false, "borderWidth": 2}, {"label": "AP", "data": [84, 79, 80, 81, 83, 87, 84, 87, 80, 71], "borderColor": "#10b981", "backgroundColor": "#10b98122", "tension": 0.3, "fill": false, "borderWidth": 2}, {"label": "Cards", "data": [45, 46, 47, 47, 48, 47, 47, 60, 61, 60], "borderColor": "#3b82f6", "backgroundColor": "#3b82f622", "tension": 0.3, "fill": false, "borderWidth": 2}, {"label": "Wallet", "data": [59, 63, 62, 62, 60, 61, 61, 58, 57, 59], "borderColor": "#ec4899", "backgroundColor": "#ec489922", "tension": 0.3, "fill": false, "borderWidth": 2}]
+      labels: ["Feb 11","Feb 12","Feb 13","Feb 14","Feb 17","Feb 18","Feb 19","Feb 20","Feb 21"],
+      datasets: [
+        {
+          label: "Ideal",
+          data: [407, 356, 305, 254, 203, 152, 101, 51, 0],
+          borderColor: "#475569", borderDash: [6,4], borderWidth: 2,
+          pointRadius: 0, tension: 0, fill: false
+        },
+        {
+          label: "Megapod",
+          data: [182, 183, 170, 168, 168, 167, 172, 159, 149],
+          borderColor: "#6366f1", backgroundColor: "#6366f122",
+          tension: 0.3, fill: false, borderWidth: 2
+        },
+        {
+          label: "Accounting",
+          data: [37, 37, 37, 37, 37, 42, 42, 37, 37],
+          borderColor: "#f59e0b", backgroundColor: "#f59e0b22",
+          tension: 0.3, fill: false, borderWidth: 2
+        },
+        {
+          label: "Wallet",
+          data: [59, 63, 62, 62, 60, 61, 61, 58, 57],
+          borderColor: "#ec4899", backgroundColor: "#ec489922",
+          tension: 0.3, fill: false, borderWidth: 2
+        },
+        {
+          label: "Cards",
+          data: [45, 46, 47, 47, 48, 47, 47, 60, 61],
+          borderColor: "#3b82f6", backgroundColor: "#3b82f622",
+          tension: 0.3, fill: false, borderWidth: 2
+        },
+        {
+          label: "AP",
+          data: [84, 79, 80, 81, 83, 87, 84, 87, 80],
+          borderColor: "#14b8a6", backgroundColor: "#14b8a622",
+          tension: 0.3, fill: false, borderWidth: 2
+        }
+      ]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
@@ -897,26 +523,18 @@ if (burndownCtx) {
   });
 }
 
-// ── Pod Tickets Chart ───────────────────────────
-const podTicketsCtx = document.getElementById('podTicketsChart');
-if (podTicketsCtx) {
-  new Chart(podTicketsCtx, {
+// ── State Breakdown Chart ────────────────────────────────────
+const stateCtx = document.getElementById('stateChart');
+if (stateCtx) {
+  new Chart(stateCtx, {
     type: 'bar',
     data: {
-      labels: ["Megapod", "Accounting", "AP", "Cards", "Wallet"],
+      labels: ['Megapod', 'Accounting', 'Wallet', 'Cards', 'AP'],
       datasets: [
-        {
-          label: 'Completed',
-          data: [54, 10, 41, 28, 35],
-          backgroundColor: ["#6366f1", "#f59e0b", "#10b981", "#3b82f6", "#ec4899"],
-          borderRadius: 6,
-        },
-        {
-          label: 'Remaining',
-          data: [53, 32, 47, 44, 47],
-          backgroundColor: ["#6366f144", "#f59e0b44", "#10b98144", "#3b82f644", "#ec489944"],
-          borderRadius: 6,
-        }
+        { label: 'Done', data: [54, 10, 35, 28, 38], backgroundColor: '#10b981' },
+        { label: 'In Progress', data: [31, 13, 26, 12, 26], backgroundColor: '#6366f1' },
+        { label: 'Todo', data: [18, 19, 19, 27, 23], backgroundColor: '#f59e0b' },
+        { label: 'Canceled', data: [4, 0, 1, 4, 1], backgroundColor: '#ef4444' }
       ]
     },
     options: {
@@ -924,68 +542,30 @@ if (podTicketsCtx) {
       plugins: { legend: { position: 'top' } },
       scales: {
         x: { stacked: true, grid: { color: '#334155' } },
-        y: { stacked: true, grid: { color: '#334155' }, title: { display: true, text: 'Tickets' } }
+        y: { stacked: true, grid: { color: '#334155' }, title: { display: true, text: 'Issue Count' } }
       }
     }
   });
 }
 
-// ── Pod Points Chart ────────────────────────────
-const podPointsCtx = document.getElementById('podPointsChart');
-if (podPointsCtx) {
-  new Chart(podPointsCtx, {
-    type: 'bar',
-    data: {
-      labels: ["Megapod", "Accounting", "AP", "Cards", "Wallet"],
-      datasets: [
-        {
-          label: 'Burned',
-          data: [85, 9, 55, 29, 34],
-          backgroundColor: ["#6366f1", "#f59e0b", "#10b981", "#3b82f6", "#ec4899"],
-          borderRadius: 6,
-        },
-        {
-          label: 'Remaining',
-          data: [153, 17, 49, 62, 52],
-          backgroundColor: ["#6366f144", "#f59e0b44", "#10b98144", "#3b82f644", "#ec489944"],
-          borderRadius: 6,
-        }
-      ]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { position: 'top' } },
-      scales: {
-        x: { stacked: true, grid: { color: '#334155' } },
-        y: { stacked: true, grid: { color: '#334155' }, title: { display: true, text: 'Story Points' } }
-      }
-    }
-  });
-}
-
-// ── Next Sprint Pod Chart ───────────────────────
+// ── Next Sprint: Ticket Count per Pod ──────────────────────
 const nextPodCtx = document.getElementById('nextPodChart');
 if (nextPodCtx) {
   new Chart(nextPodCtx, {
     type: 'bar',
     data: {
-      labels: ["Megapod", "Accounting", "AP", "Cards", "Wallet"],
+      labels: ['Megapod', 'Accounting', 'Wallet', 'Cards', 'AP'],
       datasets: [
         {
           label: 'Tickets',
           data: [31, 8, 1, 10, 1],
-          backgroundColor: ["#6366f1", "#f59e0b", "#10b981", "#3b82f6", "#ec4899"],
-          borderRadius: 6,
-          yAxisID: 'y',
+          backgroundColor: ['#6366f1','#f59e0b','#ec4899','#3b82f6','#14b8a6']
         },
         {
           label: 'Story Points',
           data: [69, 4, 0, 15, 0],
-          backgroundColor: ["#6366f166", "#f59e0b66", "#10b98166", "#3b82f666", "#ec489966"],
-          borderRadius: 6,
-          yAxisID: 'y2',
-          type: 'line',
-          tension: 0.3,
+          backgroundColor: ['#818cf8','#fbbf24','#f472b6','#60a5fa','#2dd4bf'],
+          borderWidth: 0
         }
       ]
     },
@@ -994,59 +574,96 @@ if (nextPodCtx) {
       plugins: { legend: { position: 'top' } },
       scales: {
         x: { grid: { color: '#334155' } },
-        y: { grid: { color: '#334155' }, title: { display: true, text: 'Tickets' } },
-        y2: { position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'Points' } }
+        y: { grid: { color: '#334155' }, title: { display: true, text: 'Count / Points' } }
       }
     }
   });
 }
 
-// ── Engineer Points Chart ───────────────────────
-const engPointsCtx = document.getElementById('engPointsChart');
-if (engPointsCtx) {
-  new Chart(engPointsCtx, {
+// ── Next Sprint: Engineer Points ────────────────────────────
+const engCtx = document.getElementById('engPointsChart');
+if (engCtx) {
+  const engineers = [
+    'Dinesh Yadav', 'Edin', 'Giacomo Berdondini', 'Claudio Comandini',
+    'Edgar Retes', 'Eduard', 'Luca Venturini', 'Anish Bhatt',
+    'Akash Gangrade', 'Apurva Singh', 'Vido Mladenovic', 'Daniel Valdez',
+    'Sashe Klechkovski', 'Keshav Gangopalwad'
+  ];
+  const pts = [11, 9, 8, 8, 5, 6, 5, 5, 4, 4, 2, 2, 1, 1];
+  new Chart(engCtx, {
     type: 'bar',
     data: {
-      labels: ["Akash Gangrade", "Anish Bhatt", "Anish Kumar", "Apurva Singh", "Claudio Comandini", "Daniel Valdez", "Dinesh Yadav", "Giacomo Berdondini", "Keshav Gangopalwad", "Luca Venturini", "Narendra Kumar Sharma", "Sashe Klechkovski", "Vido Mladenovic", "edgar.retes@tryjeeves.com", "edin@tryjeeves.com", "eduard@tryjeeves.com"],
-      datasets: [{"label": "Megapod", "data": [4, 5, 0, 0, 8, 0, 0, 8, 0, 5, 0, 0, 2, 5, 9, 6], "backgroundColor": "#6366f1"}, {"label": "Accounting", "data": [0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "backgroundColor": "#f59e0b"}, {"label": "AP", "data": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "backgroundColor": "#10b981"}, {"label": "Cards", "data": [0, 0, 0, 0, 0, 2, 11, 0, 1, 0, 0, 1, 0, 0, 0, 0], "backgroundColor": "#3b82f6"}, {"label": "Wallet", "data": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "backgroundColor": "#ec4899"}]
+      labels: engineers,
+      datasets: [{
+        label: 'Story Points',
+        data: pts,
+        backgroundColor: pts.map(p => p >= 8 ? '#ef4444' : p >= 5 ? '#f59e0b' : '#10b981'),
+        borderRadius: 4
+      }]
     },
     options: {
-      responsive: true, maintainAspectRatio: false,
       indexAxis: 'y',
-      plugins: { legend: { position: 'top' } },
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
       scales: {
-        x: { stacked: true, grid: { color: '#334155' }, title: { display: true, text: 'Story Points' } },
-        y: { stacked: true, grid: { color: '#33415577' }, ticks: { font: { size: 11 } } }
+        x: { grid: { color: '#334155' }, title: { display: true, text: 'Story Points' } },
+        y: { grid: { color: '#334155' } }
       }
     }
   });
 }
 
-// ── Pareto Chart ────────────────────────────────
+// ── Pareto: Top 20 tickets by points ──────────────────────
 const paretoCtx = document.getElementById('paretoChart');
 if (paretoCtx) {
+  const tickets = [
+    { id: 'MP-2064', title: '[SECURITY] MFA implementation', pts: 8 },
+    { id: 'MP-910',  title: 'FTU: Doc/Field Removals', pts: 8 },
+    { id: 'MP-319',  title: '[TechR] notification service templates', pts: 8 },
+    { id: 'MP-2339', title: 'Proactive WhatsApp After Card Transaction', pts: 5 },
+    { id: 'MP-2432', title: 'Update KAM Ownership in CMS', pts: 3 },
+    { id: 'MP-2431', title: 'Switch onboarding flow to AWX (NY)', pts: 3 },
+    { id: 'MP-2407', title: 'Pluggy: Balance mismatch AutoInvestment', pts: 3 },
+    { id: 'MP-2392', title: 'Inconsistent trip-bound logic', pts: 3 },
+    { id: 'MP-2390', title: 'AI Policy Enforcer: Uber Eats misclassify', pts: 3 },
+    { id: 'MP-2362', title: 'Reimbursements: amount conversion glitch', pts: 3 },
+    { id: 'MP-1530', title: 'Card creation flow UI', pts: 3 },
+    { id: 'CARDS-7324', title: 'Digital Wallets LATAM - Token LifeCycle', pts: 3 },
+    { id: 'CARDS-6912', title: 'Settlement Issue for Marqeta capture', pts: 3 },
+    { id: 'MP-2422', title: 'ONB: nux-onboarding flow migrations', pts: 2 },
+    { id: 'MP-2421', title: 'ONB: Admin initiate fiat currency from CMS', pts: 2 },
+    { id: 'MP-2394', title: 'Bridge wallet confirmation flow', pts: 2 },
+    { id: 'MP-2391', title: 'AI Policy Enforcer: Airbnb misclassify', pts: 2 },
+    { id: 'MP-2351', title: 'RegCheq: REDECO API superuser creation', pts: 2 },
+    { id: 'MP-2347', title: 'RegCheq: Send transactional profile', pts: 2 },
+    { id: 'MP-2166', title: 'Employee sees admin-only after role change', pts: 2 },
+  ];
+  let cumSum = 0;
+  const total = tickets.reduce((s,t) => s + t.pts, 0);
+  const cumPct = tickets.map(t => { cumSum += t.pts; return Math.round((cumSum/total)*100); });
+
   new Chart(paretoCtx, {
     type: 'bar',
     data: {
-      labels: ["MP-2064", "MP-910", "MP-319", "MP-2339", "MP-2432", "MP-2431", "MP-2407", "MP-2392", "MP-2390", "MP-2362", "MP-1530", "CARDS-7324", "CARDS-6912", "MP-2422", "MP-2421", "MP-2394", "MP-2391", "MP-2351", "MP-2347", "MP-2166", "MP-1510", "MP-1057", "ACC-1399", "ACC-1206", "CARDS-7931"],
+      labels: tickets.map(t => t.id),
       datasets: [
         {
           label: 'Story Points',
-          data: [8, 8, 8, 5, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-          backgroundColor: ["#6366f1", "#6366f1", "#6366f1", "#6366f1", "#6366f1", "#6366f1", "#6366f1", "#6366f1", "#6366f1", "#6366f1", "#6366f1", "#3b82f6", "#3b82f6", "#6366f1", "#6366f1", "#6366f1", "#6366f1", "#6366f1", "#6366f1", "#6366f1", "#6366f1", "#6366f1", "#f59e0b", "#f59e0b", "#3b82f6"],
+          data: tickets.map(t => t.pts),
+          backgroundColor: '#6366f1',
           borderRadius: 4,
-          yAxisID: 'y',
+          yAxisID: 'y'
         },
         {
-          label: 'Cumulative %',
-          data: [10.0, 20.0, 30.0, 36.2, 40.0, 43.8, 47.5, 51.2, 55.0, 58.8, 62.5, 66.2, 70.0, 72.5, 75.0, 77.5, 80.0, 82.5, 85.0, 87.5, 90.0, 92.5, 95.0, 97.5, 100.0],
           type: 'line',
+          label: 'Cumulative %',
+          data: cumPct,
           borderColor: '#f59e0b',
-          backgroundColor: '#f59e0b33',
+          borderWidth: 2,
+          pointRadius: 3,
           tension: 0.3,
           yAxisID: 'y2',
-          pointRadius: 3,
-          fill: true,
+          fill: false
         }
       ]
     },
@@ -1056,16 +673,12 @@ if (paretoCtx) {
         legend: { position: 'top' },
         tooltip: {
           callbacks: {
-            afterBody: function(items) {
-              const i = items[0].dataIndex;
-              const titles = ["[SECURITY] new MFA implementation with code render", "FTU: Doc/Field Removals", "[TechR] - notification service - review the templa", "Proactive WhatsApp Message After Card Transaction", "Update KAM Ownership in CMS", "Switch onboarding flow default to AWX for jurisdic", "Pluggy: Balance mismatch on bank with AutoInvestme", "Inconsistent trip-bound logic: transactions withou", "AI Policy Enforcer incorrectly classifies Uber Eat", "Reimbursements: glitch on amount conversion", "Card creation flow UI", "Digital Wallets LATAM - Token LifeCycle integratio", "Settlement Issue for Marqeta under capture - `reve", "ONB: nux-onboarding flow migrations", "ONB: Allow admin to initiate fiat currency applica", "On bridge confirmation of a wallet is activated se", "AI Policy Enforcer misclassifies Airbnb accommodat", "RegCheq: REDECO API superuser creation", "RegCheq: Send transactional profile to RegCheq", "Employee sees admin-only actions after role change", "Status column [Teams page]", "EXPM - /change-approval-status to system2system to", "Add Department ID + Location ID to Accounting expo", "FA: Show the the last 4 digits of the bank account", "Investigate Pod Isolation for Authorization Servic"];
-              return 'Title: ' + titles[i];
-            }
+            title: (items) => tickets[items[0].dataIndex]?.title || items[0].label
           }
         }
       },
       scales: {
-        x: { grid: { color: '#334155' }, ticks: { font: { size: 10 } } },
+        x: { grid: { color: '#334155' } },
         y: { grid: { color: '#334155' }, title: { display: true, text: 'Story Points' } },
         y2: {
           position: 'right',
